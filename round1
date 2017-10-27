@@ -1,0 +1,28 @@
+sent: login
+bugfix response: Let's get started. The bugs are waiting for you. - 10 - Fix all the bugs, one by one, with this message: "Fixed"
+sent: bugfix 9 - Fixed
+end response: Keep going - false
+sent: bugfix 8 - Fixed
+bugfix response: Oh no, something went wrong! - 20 - The previous fix created other bugs :(
+sent: bugfix 19 - Fixed
+end response: It was difficult, but you made it! - false
+sent: bugfix 18 - Fixed
+end response: I believe in you! <3 - false
+sent: bugfix 17 - Fixed
+bugfix response: Look out, maybe the message is not a message! - 0 -
+sent: bugfix 16 - Fixed
+bugfix response: You're going to make it! - 3 - Cool, this helped a lot! Thanks
+sent: bugfix 2 - Fixed
+bugfix response: You're going to make it! - 3 - Cool, this helped a lot! Thanks
+sent: bugfix 2 - Fixed
+bugfix response:  - 3 - Cool, this helped a lot! Thanks
+sent: bugfix 2 - Fixed
+bugfix response: Almost...  - 0 -
+sent: bugfix 1 - Fixed
+end response: Not yet, but closer :) - false
+sent: bugfix 0 - Fixed
+bugfix response:  - 0 -
+sent: bugfix -1 - Fixed
+bugfix response: Congratulation! You fixed all the bugs! - 3 - Send back a message which tells how many bugs you fixed really. You need to attach it with the following message: "I solved a huge amount of bug. I am proud of myself."
+sent: bugfix 12 - I solved a huge amount of bug. I am proud of myself.
+end response: You're in! Thanks for the game. You can close your client now. - true
