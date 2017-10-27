@@ -1,0 +1,7 @@
+#!/bin/bash
+for FILE in $(ls -1 *.capnp)
+do
+	echo $FILE
+	capnpc -I../../capnproto-java/compiler/src/main/schema/ -o../../capnproto-java/capnpc-java $FILE
+done
+
