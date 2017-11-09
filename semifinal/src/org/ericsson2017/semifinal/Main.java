@@ -21,20 +21,48 @@ public class Main {
     }
 
     private void login() throws Throwable {
+        MessageBuilder messageBuilder=new MessageBuilder();
+        CommandClass.Command.Builder request
+                        =messageBuilder.initRoot(CommandClass.Command.factory);
+        CommandClass.Command.Login.Builder login=request.initLogin();
+        login.setHash(HASH);
+        login.setTeam(TEAM);
+        Serialize.write(channel, messageBuilder);
+        System.out.println("sent: login");
+    }
+    
+    private void move(CommonClass.Direction dir) {
+        try {
             MessageBuilder messageBuilder=new MessageBuilder();
             CommandClass.Command.Builder request
                             =messageBuilder.initRoot(CommandClass.Command.factory);
-            CommandClass.Command.Login.Builder login=request.initLogin();
-            login.setHash(HASH);
-            login.setTeam(TEAM);
+            org.capnproto.StructList.Builder<CommandClass.Move.Builder> command = request.initMoves(1);
+
+            command.get(0).setUnit(0);
+            command.get(0).setDirection(dir);
+
             Serialize.write(channel, messageBuilder);
-            System.out.println("sent: login");
+            System.out.println("sent: move(" + dir.name() + ")");
+            
+            print(response());
+        } catch (Throwable e) {
+            System.out.println(e);
+        }
     }
 
     public void main() throws Throwable { 
-            login();
-            System.out.println("Logined");
-            print(response());
+        login();
+        System.out.println("Logined");
+        print(response());
+        
+        move(CommonClass.Direction.RIGHT);
+        move(CommonClass.Direction.RIGHT);
+        move(CommonClass.Direction.RIGHT);
+        move(CommonClass.Direction.DOWN);
+        move(CommonClass.Direction.DOWN);
+        move(CommonClass.Direction.LEFT);
+        move(CommonClass.Direction.LEFT);
+        
     }
 	
     public static void main(String[] args) throws Throwable {
@@ -43,10 +71,12 @@ public class Main {
             new Main(channel).main();
         }
     }
-	
-    private ResponseClass.Response.Reader print(
-                    ResponseClass.Response.Reader response) {
-        System.out.println("Response which");
+    
+    private void printStatus(ResponseClass.Response.Reader response) {
+        System.out.println("");
+        System.out.println("*************");
+        System.out.println("STATUS REPORT");
+        System.out.println("*************");
         System.out.println(response.getStatus().toString());
         
         for(int sl=0; sl<response.getCells().size(); sl++) {
@@ -66,29 +96,17 @@ public class Main {
                     + response.getEnemies().get(e).getDirection().getVertical());
         }
         
-        /*
-        switch (response.which()) {
-            case BUGFIX:
-                    System.out.println(String.format(
-                                    "bugfix response: %1$s - %2$s - %3$s",
-                                    response.getStatus(),
-                                    response.getBugfix().getBugs(),
-                                    response.getBugfix().getMessage()));
-                    break;
-            case END:
-                    System.out.println(String.format(
-                                    "end response: %1$s - %2$s",
-                                    response.getStatus(),
-                                    response.getEnd()));
-                    break;
-            default:
-                    System.out.println(String.format(
-                                    "unknown response: %1$s - %2$s",
-                                    response.getStatus(),
-                                    response.which()));
-                    break;
-        }
-*/
+        System.out.println("Unit owner: " + response.getUnits().get(0).getOwner());
+        System.out.println("Unit health: " + response.getUnits().get(0).getHealth());
+        System.out.println("Unit position: " + response.getUnits().get(0).getPosition().getX() + ":" + response.getUnits().get(0).getPosition().getY());
+
+    }
+	
+    private ResponseClass.Response.Reader print(
+                    ResponseClass.Response.Reader response) {
+        
+        printStatus(response);
+        
         return response;
     }
 	
