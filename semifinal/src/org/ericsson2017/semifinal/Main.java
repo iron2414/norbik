@@ -24,7 +24,7 @@ public class Main {
         MessageBuilder messageBuilder=new MessageBuilder();
         CommandClass.Command.Builder request
                         =messageBuilder.initRoot(CommandClass.Command.factory);
-        CommandClass.Command.Login.Builder login=request.initLogin();
+        CommandClass.Command.Commands.Login.Builder login=request.initCommands().initLogin();
         login.setHash(HASH);
         login.setTeam(TEAM);
         Serialize.write(channel, messageBuilder);
@@ -36,7 +36,7 @@ public class Main {
             MessageBuilder messageBuilder=new MessageBuilder();
             CommandClass.Command.Builder request
                             =messageBuilder.initRoot(CommandClass.Command.factory);
-            org.capnproto.StructList.Builder<CommandClass.Move.Builder> command = request.initMoves(1);
+            org.capnproto.StructList.Builder<CommandClass.Move.Builder> command = request.initCommands().initMoves(1);
 
             command.get(0).setUnit(0);
             command.get(0).setDirection(dir);
@@ -55,13 +55,19 @@ public class Main {
         System.out.println("Logined");
         print(response());
         
-        move(CommonClass.Direction.RIGHT);
-        move(CommonClass.Direction.RIGHT);
-        move(CommonClass.Direction.RIGHT);
-        move(CommonClass.Direction.DOWN);
-        move(CommonClass.Direction.DOWN);
-        move(CommonClass.Direction.LEFT);
-        move(CommonClass.Direction.LEFT);
+        for(int i=0; i<40; i++) {
+            move(CommonClass.Direction.RIGHT);
+        }
+        
+        for(int i=0; i<70; i++) {
+            move(CommonClass.Direction.DOWN);
+        }
+
+        for(int i=0; i<40; i++) {
+            move(CommonClass.Direction.LEFT);
+        }
+        
+        printCells(response());
         
     }
 	
@@ -72,13 +78,7 @@ public class Main {
         }
     }
     
-    private void printStatus(ResponseClass.Response.Reader response) {
-        System.out.println("");
-        System.out.println("*************");
-        System.out.println("STATUS REPORT");
-        System.out.println("*************");
-        System.out.println(response.getStatus().toString());
-        
+    private void printCells(ResponseClass.Response.Reader response) {
         for(int sl=0; sl<response.getCells().size(); sl++) {
             for(int i=0; i<response.getCells().get(sl).size(); i++) {
                 System.out.print(response.getCells().get(sl).get(i).getOwner());
@@ -86,13 +86,25 @@ public class Main {
             System.out.println();
         }
         
+        System.out.println();
+        System.out.println(response.getStatus().toString());
+        System.out.println("Tick: " + response.getInfo().getTick());
+    }
+    
+    private void printStatus(ResponseClass.Response.Reader response) {
+        System.out.println("");
+        System.out.println("*************");
+        System.out.println("STATUS REPORT");
+        System.out.println("*************");
+        System.out.println(response.getStatus().toString());
+        
         for(int e = 0; e<response.getEnemies().size(); e++) {
-            System.out.println(response.getEnemies().get(e).getPosition().getX() 
+            System.out.println("ENEMY "+e+": " + response.getEnemies().get(e).getPosition().getX() 
                     + ":" 
                     + response.getEnemies().get(e).getPosition().getY() 
                     + " -> "
                     + response.getEnemies().get(e).getDirection().getHorizontal()
-                    + " - "
+                    + "-"
                     + response.getEnemies().get(e).getDirection().getVertical());
         }
         
