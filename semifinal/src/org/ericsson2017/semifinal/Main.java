@@ -4,6 +4,7 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import org.capnproto.MessageBuilder;
 import org.capnproto.Serialize;
+import org.ericsson2017.semifinal.Simulator;
 import org.ericsson2017.protocol.semifinal.CommandClass;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 import org.ericsson2017.protocol.semifinal.ResponseClass;
@@ -53,8 +54,15 @@ public class Main {
     public void main() throws Throwable { 
         login();
         System.out.println("Logined");
-        print(response());
         
+        ResponseClass.Response.Reader resp = response();
+        
+        Simulator simulator = new Simulator(resp);
+        simulator.printCells();
+        System.out.println("\n----------------------\n");
+        print(resp);
+        
+        /*
         for(int i=0; i<40; i++) {
             move(CommonClass.Direction.RIGHT);
         }
@@ -66,6 +74,7 @@ public class Main {
         for(int i=0; i<40; i++) {
             move(CommonClass.Direction.LEFT);
         }
+*/
         
         printCells(response());
         
