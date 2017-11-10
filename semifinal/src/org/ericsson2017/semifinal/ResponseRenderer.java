@@ -97,8 +97,8 @@ public class ResponseRenderer {
 					unit.getPosition().getY(),
 					unit.getDirection());
 		}
-		cellsWidth=response.getCells().size();
-		cellsHeight=response.getCells().get(0).size();
+		cellsWidth=response.getCells().get(0).size();
+		cellsHeight=response.getCells().size();
 		cellSize=Math.min((width-1-3*PADDING-lineWidth)/cellsWidth,
 				(height-1-2*PADDING)/cellsHeight);
 		cellsX=width-PADDING-1-cellsWidth*cellSize;
@@ -117,12 +117,12 @@ public class ResponseRenderer {
 					cellsX+cc*cellSize,
 					cellsY+cellsHeight*cellSize);
 		}
-		for (int cc=cellsWidth-1; 0<=cc; --cc) {
-			int cx=cellsX+cc*cellSize;
-			for (int rr=cellsHeight-1; 0<=rr; --rr) {
-				int cy=cellsY+rr*cellSize;
+		for (int xx=cellsWidth-1; 0<=xx; --xx) {
+			int cx=cellsX+xx*cellSize;
+			for (int yy=cellsHeight-1; 0<=yy; --yy) {
+				int cy=cellsY+yy*cellSize;
 				ResponseClass.Cell.Reader cell
-						=response.getCells().get(cc).get(rr);
+						=response.getCells().get(yy).get(xx);
 				if (0!=cell.getOwner()) {
 					graphics.setColor(color(cell.getOwner()));
 					graphics.fillRect(cx+1, cy+1, cellSize-1, cellSize-1);
@@ -150,8 +150,8 @@ public class ResponseRenderer {
 			}
 		}
 		for (ResponseClass.Enemy.Reader enemy: response.getEnemies()) {
-			int ex=cellsX+enemy.getPosition().getX()*cellSize;
-			int ey=cellsY+enemy.getPosition().getY()*cellSize;
+			int ex=cellsX+enemy.getPosition().getY()*cellSize;
+			int ey=cellsY+enemy.getPosition().getX()*cellSize;
 			graphics.setColor(Color.LIGHT_GRAY);
 			graphics.drawOval(
 					ex+1,
@@ -160,8 +160,8 @@ public class ResponseRenderer {
 					cellSize-2);
 		}
 		for (ResponseClass.Unit.Reader unit: response.getUnits()) {
-			int ux=cellsX+unit.getPosition().getX()*cellSize;
-			int uy=cellsY+unit.getPosition().getY()*cellSize;
+			int ux=cellsX+unit.getPosition().getY()*cellSize;
+			int uy=cellsY+unit.getPosition().getX()*cellSize;
 			graphics.setColor(color(unit.getOwner()));
 			graphics.fillOval(
 					ux+1,

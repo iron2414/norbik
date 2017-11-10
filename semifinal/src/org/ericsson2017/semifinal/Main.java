@@ -1,6 +1,7 @@
 package org.ericsson2017.semifinal;
 
 import java.awt.BorderLayout;
+import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -26,8 +27,20 @@ public class Main {
 		
 		@Override
 		protected void paintComponent(Graphics graphics) {
-			ResponseRenderer.render((Graphics2D)graphics, getWidth(),
-					getHeight(), response.get());
+			try {
+				ResponseRenderer.render((Graphics2D)graphics, getWidth(),
+						getHeight(), response.get());
+			}
+			catch (Throwable throwable) {
+				throwable.printStackTrace(System.err);
+				for (Container container=this.getParent();
+						null!=container;
+						container=container.getParent()) {
+					if (container instanceof Frame) {
+						((Frame)container).dispose();
+					}
+				}
+			}
 		}
 		
 		public void render(ResponseClass.Response.Reader response) {
@@ -85,7 +98,12 @@ public class Main {
 		try {
 			login();
 			System.out.println("Logged in");
-			print(response());
+			
+			ResponseClass.Response.Reader response=response();
+			Simulator simulator = new Simulator(response);
+			simulator.printCells();
+			System.out.println("\n----------------------\n");
+			print(response);
 			for(int i=0; i<40; i++) {
 				move(CommonClass.Direction.RIGHT);
 				print(response());
