@@ -107,11 +107,11 @@ public final class ResponseClass {
         public final boolean getCan() {
           assert which() == Cell.Attack.Which.CAN:
                       "Must check which() before get()ing a union member.";
-          return _getBooleanField(32, (boolean)true);
+          return _getBooleanField(32, true);
         }
         public final void setCan(boolean value) {
           _setShortField(3, (short)Cell.Attack.Which.CAN.ordinal());
-          _setBooleanField(32, value, (boolean)true);
+          _setBooleanField(32, value, true);
         }
 
         public final boolean isUnit() {
@@ -147,7 +147,7 @@ public final class ResponseClass {
         public final boolean getCan() {
           assert which() == Cell.Attack.Which.CAN:
                       "Must check which() before get()ing a union member.";
-          return _getBooleanField(32, (boolean)true);
+          return _getBooleanField(32, true);
         }
 
         public final boolean isUnit() {
@@ -385,17 +385,17 @@ public final class ResponseClass {
       }
 
       public final int getHealth() {
-        return _getIntField(2, (int)3);
+        return _getIntField(2, 3);
       }
       public final void setHealth(int value) {
-        _setIntField(2, value, (int)3);
+        _setIntField(2, value, 3);
       }
 
       public final int getKiller() {
-        return _getIntField(3, (int)6);
+        return _getIntField(3, 6);
       }
       public final void setKiller(int value) {
-        _setIntField(3, value, (int)6);
+        _setIntField(3, value, 6);
       }
 
     }
@@ -427,11 +427,11 @@ public final class ResponseClass {
       }
 
       public final int getHealth() {
-        return _getIntField(2, (int)3);
+        return _getIntField(2, 3);
       }
 
       public final int getKiller() {
-        return _getIntField(3, (int)6);
+        return _getIntField(3, 6);
       }
 
     }
