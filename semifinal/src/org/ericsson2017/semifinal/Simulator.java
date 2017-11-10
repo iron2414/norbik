@@ -174,7 +174,14 @@ public class Simulator {
                 
                 for(Enemy e : enemies) {
                     if (e.getCoord().getX() == x && e.getCoord().getY() == y) {
-                        cellValue = "e";
+                        boolean right = e.getDirX() == CommonClass.Direction.RIGHT;
+                        boolean up = e.getDirY() == CommonClass.Direction.UP;
+                        
+                        if (right) {
+                            cellValue = up ? "↗" : "↘";
+                        } else {
+                            cellValue = up ? "↖" : "↙";
+                        }
                     }
                 }
                 
