@@ -10,14 +10,13 @@ $Java.outerClassname("CommandClass");
 
 using Common = import "Common.capnp";
 
-
 struct Move {
     unit @0 : Int32;
     direction @1 : Common.Direction;
 }
 
 struct Command {
-    union {
+    commands : union {
         moves @0 : List(Move);
         login : group {
             team @1 : Text;

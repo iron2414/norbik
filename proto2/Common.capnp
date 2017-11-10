@@ -7,7 +7,6 @@ $Java.outerClassname("CommonClass");
 # using Cxx = import "/capnp/c++.capnp";
 # $Cxx.namespace("ericsson2017::protocol::semifinal");
 
-
 enum Direction {
     up @0;
     left @1;
