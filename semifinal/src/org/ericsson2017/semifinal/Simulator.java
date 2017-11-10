@@ -74,10 +74,11 @@ class FutureEnemy extends Enemy
     }
     
     public FutureEnemy(Enemy enemy, double probability) {
-        super(enemy.getCoord(), enemy.getDirX(), enemy.getDirY());
+        super(new Coord(enemy.getCoord().getX(), enemy.getCoord().getY()), enemy.getDirX(), enemy.getDirY());
         this.probability = probability;
     }
 
+    
     public double getProbability() {
         return probability;
     }
@@ -341,10 +342,6 @@ public class Simulator {
     public void printFutureEnemies() {
         for(FutureEnemy fe : futureEnemies) {
             System.out.println("FE: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability());
-        }
-        
-        for(Enemy e : enemies) {
-            System.out.println("En: " + e.getCoord() + " " + e.getDirX() + " " + e.getDirY());
         }
     }
 }
