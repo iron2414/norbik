@@ -102,6 +102,7 @@ public class Main {
 			ResponseClass.Response.Reader response=response();
 			Simulator simulator = new Simulator(response);
 			simulator.printCells();
+                        //simulator.findBestSteps();
 			System.out.println("\n----------------------\n");
 			print(response);
 			for(int i=0; i<40; i++) {
