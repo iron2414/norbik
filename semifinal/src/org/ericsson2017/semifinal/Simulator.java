@@ -229,7 +229,7 @@ public class Simulator {
         }
     }
     
-    public void bounceEnemy(List<FutureEnemy> futureEnemyList, int pX, int pY, CommonClass.Direction dX, CommonClass.Direction dY, double probability)
+    public List<FutureEnemy> bounceEnemy(int pX, int pY, CommonClass.Direction dX, CommonClass.Direction dY, double probability)
     {
         int nextPosX;
         int nextPosY;
@@ -303,6 +303,8 @@ public class Simulator {
         for(FutureEnemy ne : newEnemyList) {
             ne.probability = probability / newEnemyList.size();
         }
+        
+        return newEnemyList;
     }
     
     public void calculateEnemiesNextPos()
@@ -318,11 +320,9 @@ public class Simulator {
             
             if (futureCells[nextPosX][nextPosY] > 0) {
                 // pattanni kell
-                List<FutureEnemy> bouncedEnemies = new ArrayList<>();
-                
                 // a bouncedEnemies listában benne lesz az összes pattanás az új valószínűségekkel
-                bounceEnemy(bouncedEnemies, posX, posY, fe.getDirX(), fe.getDirY(), fe.getProbability());
-                
+                List<FutureEnemy> bouncedEnemies = bounceEnemy(posX, posY, fe.getDirX(), fe.getDirY(), fe.getProbability());
+assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
                 // az aktuális ellenség irányát és helyzetét frissítjük a lista első elemével
                 fe.coord = new Coord(bouncedEnemies.get(0).coord.getX(), bouncedEnemies.get(0).coord.getY());
                 fe.dirX = bouncedEnemies.get(0).getDirX();
@@ -341,9 +341,6 @@ public class Simulator {
                         newFutureEnemies.add(f);
                     }
                 }
-                
-                // nincs már szükség a listára
-                bouncedEnemies.clear();
             } else {
                 // az adott irányban szabad a pálya, megyünk tovább
                 fe.getCoord().x = nextPosX;
@@ -402,7 +399,7 @@ public class Simulator {
     
     public void printFutureEnemies() {
         for(FutureEnemy fe : futureEnemies) {
-            System.out.println("FE: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability());
+            System.out.println("FutureEnemy: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability() + "%");
         }
     }
 }
