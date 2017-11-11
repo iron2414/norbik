@@ -229,6 +229,82 @@ public class Simulator {
         }
     }
     
+    public void bounceEnemy(List<FutureEnemy> futureEnemyList, int pX, int pY, CommonClass.Direction dX, CommonClass.Direction dY, double probability)
+    {
+        int nextPosX;
+        int nextPosY;
+        CommonClass.Direction nextDX;
+        CommonClass.Direction nextDY;
+        boolean canRetreat = true;
+        List<FutureEnemy> newEnemyList = new ArrayList<>();
+        
+        // vissza tud pattanni?
+        nextDX = dX == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
+        nextDY = dY == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
+        nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+        nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+        
+        if (futureCells[nextPosX][nextPosY] == 0) {
+            Coord c = new Coord(nextPosX, nextPosY);
+            FutureEnemy fe = new FutureEnemy(c, nextDX, nextDY, 100.0); // a valószínűséget majd esetleg frissíteni kell
+            newEnemyList.add(fe);
+        } else {
+            canRetreat = false;
+        }
+        
+        // tud-e egyik irányban elfordulni átlósan? X irányban visszafordul, Y irányban megy tovább
+        nextDX = dX == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
+        nextDY = dY;
+        nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+        nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+        
+        if (futureCells[nextPosX][nextPosY] == 0) {
+            Coord c = new Coord(nextPosX, nextPosY);
+            FutureEnemy fe = new FutureEnemy(c, nextDX, nextDY, 100.0); // a valószínűséget majd esetleg frissíteni kell
+            newEnemyList.add(fe);
+        }
+        
+        // tud-e egyik irányban elfordulni átlósan? X irányban megy tovább, Y irányban visszafordul
+        nextDX = dX;
+        nextDY = dY == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
+        nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+        nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+        
+        if (futureCells[nextPosX][nextPosY] == 0) {
+            Coord c = new Coord(nextPosX, nextPosY);
+            FutureEnemy fe = new FutureEnemy(c, nextDX, nextDY, 100.0); // a valószínűséget majd esetleg frissíteni kell
+            newEnemyList.add(fe);
+        }
+        
+        if (newEnemyList.size() == 0) {
+            // semerre sem tud szabályosan pattanni -> vízszintesen vagy függőlegesen is mozoghat, 
+            // de az irányvektora visszafelé kell hogy mutasson
+            nextDX = dX == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
+            nextDY = dY == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
+            nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+            nextPosY = pY;
+            
+            if (futureCells[nextPosX][nextPosY] == 0) {
+                Coord c = new Coord(nextPosX, nextPosY);
+                FutureEnemy fe = new FutureEnemy(c, nextDX, nextDY, 100.0); // a valószínűséget majd esetleg frissíteni kell
+                newEnemyList.add(fe);
+            }
+            
+            nextPosX = pX;
+            nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+            
+            if (futureCells[nextPosX][nextPosY] == 0) {
+                Coord c = new Coord(nextPosX, nextPosY);
+                FutureEnemy fe = new FutureEnemy(c, nextDX, nextDY, 100.0); // a valószínűséget majd esetleg frissíteni kell
+                newEnemyList.add(fe);
+            }
+        }
+        
+        for(FutureEnemy ne : newEnemyList) {
+            ne.probability = probability / newEnemyList.size();
+        }
+    }
+    
     public void calculateEnemiesNextPos()
     {
         List<FutureEnemy> newFutureEnemies = new ArrayList<>();
@@ -242,49 +318,34 @@ public class Simulator {
             
             if (futureCells[nextPosX][nextPosY] > 0) {
                 // pattanni kell
-                int springs = 1;
+                List<FutureEnemy> bouncedEnemies = new ArrayList<>();
                 
-                // teljes visszafordulás biztosan lehetséges -> főág
-                CommonClass.Direction newDirX = fe.getDirX() == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
-                CommonClass.Direction newDirY = fe.getDirY() == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
+                // a bouncedEnemies listában benne lesz az összes pattanás az új valószínűségekkel
+                bounceEnemy(bouncedEnemies, posX, posY, fe.getDirX(), fe.getDirY(), fe.getProbability());
                 
-                fe.getCoord().x = posX + (newDirX == CommonClass.Direction.RIGHT ? 1 : -1);
-                fe.getCoord().y = posY + (newDirY == CommonClass.Direction.UP ? -1 : 1);
+                // az aktuális ellenség irányát és helyzetét frissítjük a lista első elemével
+                fe.coord = new Coord(bouncedEnemies.get(0).coord.getX(), bouncedEnemies.get(0).coord.getY());
+                fe.dirX = bouncedEnemies.get(0).getDirX();
+                fe.dirY = bouncedEnemies.get(0).getDirY();
+                fe.probability = bouncedEnemies.get(0).getProbability();
                 
-                // lehetséges-e csak az egyik irányt fordítani?
-                newDirX = fe.getDirX() == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
-                nextPosX = posX + (newDirX == CommonClass.Direction.RIGHT ? 1 : -1);
-                nextPosY = posY + (newDirY == CommonClass.Direction.UP ? -1 : 1);
-                
-                if (futureCells[nextPosX][nextPosY] == 0) {
-                    springs++;
-                    
-                    Coord coord = new Coord(nextPosX, nextPosY);
-                    FutureEnemy newFE = new FutureEnemy(coord, newDirX, newDirY, fe.probability/springs);
-                    newFutureEnemies.add(newFE);
-                }
-                
-                // másik irányban fordítani?
-                newDirX = fe.getDirX() == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
-                newDirY = fe.getDirY() == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
-                nextPosX = posX + (newDirX == CommonClass.Direction.RIGHT ? 1 : -1);
-                nextPosY = posY + (newDirY == CommonClass.Direction.UP ? -1 : 1);
-                
-                if (futureCells[nextPosX][nextPosY] == 0) {
-                    springs++;
-                    
-                    if (springs==3) {
-                        // előző valószínűséget módosítani kell
-                        newFutureEnemies.get(newFutureEnemies.size()-1).probability = fe.probability/springs;
+                // ha van a listában más is, akkor abból új ellenségeket hozunk létre
+                if (bouncedEnemies.size() > 1) {
+                    for(int i=1; i<bouncedEnemies.size(); i++) {
+                        FutureEnemy f = new FutureEnemy(
+                                new Coord(bouncedEnemies.get(i).coord.getX(), bouncedEnemies.get(i).coord.getY()), 
+                                bouncedEnemies.get(i).dirX,
+                                bouncedEnemies.get(i).dirY,
+                                bouncedEnemies.get(i).getProbability()
+                        );
+                        newFutureEnemies.add(f);
                     }
-                    
-                    Coord coord = new Coord(nextPosX, nextPosY);
-                    FutureEnemy newFE = new FutureEnemy(coord, newDirX, newDirY, fe.probability/springs);
-                    newFutureEnemies.add(newFE);
                 }
                 
-                fe.probability /= springs;
+                // nincs már szükség a listára
+                bouncedEnemies.clear();
             } else {
+                // az adott irányban szabad a pálya, megyünk tovább
                 fe.getCoord().x = nextPosX;
                 fe.getCoord().y = nextPosY;
             }
