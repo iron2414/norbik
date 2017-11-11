@@ -360,6 +360,7 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
             for(int e=0; e<futureEnemies.size(); e++) {
                 if (attackMovements.get(0).get(a).getX() == futureEnemies.get(e).coord.getX() &&
                     attackMovements.get(0).get(a).getY() == futureEnemies.get(e).coord.getY()) {
+                    //System.out.println("Collision with ("+futureEnemies.get(e).coord.getX()+":"+futureEnemies.get(e).coord.getY()+")");
                     result += futureEnemies.get(e).getProbability();
                 }
             }
@@ -384,6 +385,9 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
             
             // az ellenséggel ütközés teljes valószínűsége %
             double totalCollProb = 0.0;
+            
+            // támadás vektor ürítése
+            attackMovements.get(0).clear();
             
             // jelenlegi ellenségeket átmásoljuk jövőbelieket tároló listába 100% valószínűséggel
             futureEnemies.clear();
