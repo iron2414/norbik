@@ -352,17 +352,40 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
         futureEnemies.addAll(newFutureEnemies);
     }
 
+    public double calculateCollisionProbability()
+    {
+        // TODO: csak 1 támadóra számol jelenleg
+        double result = 0;
+        for(int a=0; a<attackMovements.get(0).size(); a++) {
+            for(int e=0; e<futureEnemies.size(); e++) {
+                if (attackMovements.get(0).get(a).getX() == futureEnemies.get(e).coord.getX() &&
+                    attackMovements.get(0).get(a).getY() == futureEnemies.get(e).coord.getY()) {
+                    result += futureEnemies.get(e).getProbability();
+                }
+            }
+        }
+        
+        return Math.min(result, 100.0);
+    }
     
     public List<CommonClass.Direction> findBestSteps() 
     {
         List<CommonClass.Direction> result = new ArrayList<>();
         List<Unit> futureUnit = new ArrayList<>();
         
+        attackMovements.add(new ArrayList<Coord>());
+        simulationResult.clear();
+        
         // előbb jobbra megyünk valamennyit, aztán lefele végig
         // 3-nél kevesebbet nem érdemes jobbra menni
         for(int x=3; x<COLS-3; x++) {
+            
+            // *** SZIMULÁCIÓ INDUL ***
+            
+            // az ellenséggel ütközés teljes valószínűsége %
+            double totalCollProb = 0.0;
+            
             // jelenlegi ellenségeket átmásoljuk jövőbelieket tároló listába 100% valószínűséggel
-//System.out.println(enemies.get(0).getCoord() + " " + enemies.get(0).getDirX() + " " + enemies.get(0).getDirY());
             futureEnemies.clear();
             //enemies.stream().map((e) -> new FutureEnemy(e, 100.0)).forEach((e) -> futureEnemies.add(e));
             for(Enemy e : enemies) {
@@ -373,7 +396,7 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
             // jelenlegi unitokat átmásoljuk a jövőbelibe
             futureUnit.clear();
             units.stream().forEach((u) -> {
-                futureUnit.add(u);
+                futureUnit.add(new Unit(new Coord(u.coord.getX(), u.coord.getY()), u.health, u.killer, u.owner));
             });
             
             // jelenlegi táblát átmásoljuk a jövőbelibe
@@ -382,24 +405,61 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
             }   
             
             // x lépés jobbra
-            for(int step=0; step<x; step++) {
+            int step;
+            attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+            for(step=0; step<x; step++) {
                 futureUnit.get(0).coord.x++;
+                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+
+                System.out.println("\nStep: " + step);
+                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
                 calculateEnemiesNextPos();
-                
-                System.out.println("Step: " + step);
                 printFutureEnemies();
             }
+
+            // ROWS-3 lefelé
+            for(; step<x+ROWS-2; step++) {
+                futureUnit.get(0).coord.y++;
+                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+                
+                System.out.println("\nStep: " + step);
+                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
+                calculateEnemiesNextPos();
+                printFutureEnemies();
+                double collProb = calculateCollisionProbability();
+                
+                if (collProb > 0) {
+                    System.out.println("COLLISION " + collProb + "%");
+                }
+                
+                totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
+            }
+            
+            System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
+            
+            SimResult simResult = new SimResult(step, 100.0-totalCollProb, Math.min((x-1) * (ROWS-4), (COLS-2-x) * (ROWS-4)) );
+            simulationResult.add(simResult);
         }
+        
         
         // előbb lefele megyünk valamennyit, aztén jobbra
         
-        
+        printSimResult();
         return result;
     }
     
     public void printFutureEnemies() {
         for(FutureEnemy fe : futureEnemies) {
             System.out.println("FutureEnemy: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability() + "%");
+        }
+    }
+    
+    public void printSimResult() {
+        System.out.println("*** Simulation result ***");
+        System.out.println("Steps | Area | SuccessRate");
+        
+        for(SimResult sr : simulationResult) {
+            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"%");
         }
     }
 }
