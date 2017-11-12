@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -101,22 +102,30 @@ public class Main {
 			
 			ResponseClass.Response.Reader response=response();
 			Simulator simulator = new Simulator(response);
-			simulator.printCells();
-                        //simulator.findBestSteps();
+			//simulator.printCells();
+                        List<CommonClass.Direction> stepList = simulator.findBestSteps();
 			System.out.println("\n----------------------\n");
-			print(response);
-			for(int i=0; i<40; i++) {
+			//print(response);
+                        
+                        for(int i=0; i<stepList.size(); ++i) {
+                            move(stepList.get(i));
+                            print(response());
+                        }
+                        
+			/*
+                        for(int i=0; i<50; i++) {
 				move(CommonClass.Direction.RIGHT);
 				print(response());
 			}
-			for(int i=0; i<70; i++) {
+			for(int i=0; i<77; i++) {
 				move(CommonClass.Direction.DOWN);
 				print(response());
 			}
-			for(int i=0; i<40; i++) {
+                        for(int i=0; i<40; i++) {
 				move(CommonClass.Direction.LEFT);
 				print(response());
 			}
+                        */
 			printCells(response());
 		}
 		finally {

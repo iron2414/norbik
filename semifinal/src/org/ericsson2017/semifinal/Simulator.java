@@ -7,6 +7,7 @@ package org.ericsson2017.semifinal;
 
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 import org.ericsson2017.protocol.semifinal.ResponseClass;
@@ -84,7 +85,7 @@ class FutureEnemy extends Enemy
     }
 }
 
-class SimResult
+class SimResult implements Comparable<SimResult>
 {
     private int steps;
     private double successProbability;
@@ -96,6 +97,19 @@ class SimResult
         this.successProbability = successProbability;
         this.rewardArea = rewardArea;
         this.path = path;
+    }
+
+    @Override
+    public int compareTo(SimResult r) {
+        if (rewardArea == r.rewardArea) {
+            if (successProbability == r.successProbability) {
+                return steps > r.steps ? -1 : (steps == r.steps ? 0 : 1);
+            } else {
+                return successProbability > r.successProbability ? -1 : 1;
+            }
+        } else {
+            return rewardArea > r.rewardArea ? -1 : 1;
+        }
     }
 
     public int getSteps() {
@@ -155,25 +169,36 @@ class Unit
 
 public class Simulator {
     public int[][] cells;
-    public List<Enemy> enemies;    // Enemy
-    public List<Unit> units;    // Unit
-    public List<List<Coord>> attackMovements;    // List<Coord>
-    public List<SimResult> simulationResult;   // SimResults
-    public List<FutureEnemy> futureEnemies = new ArrayList<>();
+    public List<Enemy> enemies;
+    public List<Unit> units;
+    public List<List<Coord>> attackMovements;
+    public List<SimResult> simulationResult;
+    public List<FutureEnemy> futureEnemies;
     public int[][] futureCells;
     public List<Unit> futureUnit;
     
     public static final int ROWS = 80;
     public static final int COLS = 100;
     
+    public static int simStep = 0;
+    public List<List<FutureEnemy>> futureEnemiesHistory;    // cache
+
+    /**
+     * "Elég nagy" sikerességi ráta -> ha ennél nagyobb egy áthaladás sikerességének
+     * valószínűsége, akkor érdemes megpróbálni
+     */
+    public static final double SUCCESS_PROBABILITY_HIGH = 95.0;
+    
     public Simulator(ResponseClass.Response.Reader response) {
         cells = new int[ROWS][COLS];
         futureCells = new int[ROWS][COLS];
+        futureEnemies = new ArrayList<>();
         enemies = new ArrayList<>();
         units = new ArrayList<>(); 
         attackMovements = new ArrayList<>();
         simulationResult = new ArrayList<>();
         futureUnit = new ArrayList<>();
+        futureEnemiesHistory = new ArrayList<>();
         
         // Cell init
         for(int sl=0; sl<response.getCells().size(); sl++) {
@@ -203,42 +228,7 @@ public class Simulator {
         }
     }
     
-    public void printCells() {
-        for(int x=0; x<ROWS; x++) {
-            for(int y=0; y<COLS; y++) {
-                String cellValue = " ";
-                
-                for(Unit u : units) {
-                    if (u.getCoord().getX() == x && u.getCoord().getY() == y) {
-                        cellValue = "¤";
-                    }
-                }
-                
-                for(Enemy e : enemies) {
-                    if (e.getCoord().getX() == x && e.getCoord().getY() == y) {
-                        boolean right = e.getDirX() == CommonClass.Direction.RIGHT;
-                        boolean up = e.getDirY() == CommonClass.Direction.UP;
-                        
-                        if (right) {
-                            cellValue = up ? "↗" : "↘";
-                        } else {
-                            cellValue = up ? "↖" : "↙";
-                        }
-                    }
-                }
-                
-                if (cellValue.equals(" ")) {
-                    cellValue = Integer.toString(cells[x][y]);
-                }
-                
-                System.out.print( cellValue );
-            }
-            
-            System.out.println();
-        }
-    }
-    
-    public List<FutureEnemy> bounceEnemy(int pX, int pY, CommonClass.Direction dX, CommonClass.Direction dY, double probability)
+    private List<FutureEnemy> bounceEnemy(int pX, int pY, CommonClass.Direction dX, CommonClass.Direction dY, double probability)
     {
         int nextPosX;
         int nextPosY;
@@ -316,8 +306,18 @@ public class Simulator {
         return newEnemyList;
     }
     
-    public void calculateEnemiesNextPos()
+    /**
+     * Kiszámítja ez ellenégek következő lehetséges pozícióit azok valószínűségével együtt
+     * és ennek megfelelően beállítja a futureEnemies listát
+     */
+    private void calculateEnemiesNextPos(int step)
     {
+        if (futureEnemiesHistory.size() > step) {
+            futureEnemies.clear();
+            futureEnemies.addAll(futureEnemiesHistory.get(step));
+            return;
+        }
+        
         List<FutureEnemy> newFutureEnemies = new ArrayList<>();
         
         for(FutureEnemy fe : futureEnemies) {
@@ -331,7 +331,9 @@ public class Simulator {
                 // pattanni kell
                 // a bouncedEnemies listában benne lesz az összes pattanás az új valószínűségekkel
                 List<FutureEnemy> bouncedEnemies = bounceEnemy(posX, posY, fe.getDirX(), fe.getDirY(), fe.getProbability());
-assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
+                
+                assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
+                
                 // az aktuális ellenség irányát és helyzetét frissítjük a lista első elemével
                 fe.coord = new Coord(bouncedEnemies.get(0).coord.getX(), bouncedEnemies.get(0).coord.getY());
                 fe.dirX = bouncedEnemies.get(0).getDirX();
@@ -359,9 +361,11 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
         
         System.out.println("New enemy traces: " + newFutureEnemies.size());
         futureEnemies.addAll(newFutureEnemies);
+        
+        futureEnemiesHistory.add(futureEnemies);
     }
 
-    public double calculateCollisionProbability()
+    private double calculateCollisionProbability()
     {
         // TODO: csak 1 támadóra számol jelenleg
         double result = 0;
@@ -382,9 +386,9 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
     {
         List<CommonClass.Direction> result = new ArrayList<>();
         
-        double totalCollProb = 0.0; // az ellenséggel ütközés teljes valószínűsége %
+        double totalCollProb; // az ellenséggel ütközés teljes valószínűsége %
 
-        attackMovements.add(new ArrayList<Coord>());
+        attackMovements.add(new ArrayList<>());
         simulationResult.clear();
         
         // előbb jobbra megyünk valamennyit, aztán lefele végig
@@ -404,7 +408,7 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
 
                 System.out.println("\nStep: " + step);
                 System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos();
+                calculateEnemiesNextPos(step);
                 printFutureEnemies();
             }
 
@@ -415,7 +419,7 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
                 
                 System.out.println("\nStep: " + step);
                 System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos();
+                calculateEnemiesNextPos(step);
                 printFutureEnemies();
                 double collProb = calculateCollisionProbability();
                 
@@ -457,7 +461,7 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
 
                 System.out.println("\nStep: " + step);
                 System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos();
+                calculateEnemiesNextPos(step);
                 printFutureEnemies();
             }
 
@@ -468,7 +472,7 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
                 
                 System.out.println("\nStep: " + step);
                 System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos();
+                calculateEnemiesNextPos(step);
                 printFutureEnemies();
                 double collProb = calculateCollisionProbability();
                 
@@ -492,9 +496,19 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
             simulationResult.add(simResult);
         }
         
-        
+        Collections.sort(simulationResult);
         printSimResult();
-        return result;
+        
+        // a 10 legjobb lehetőség közül azt választjuk, amelyiknek a valószínűsége elég nagy
+        for(int i=0; i<10; ++i) {
+            if (simulationResult.get(i).getSuccessProbability() >= SUCCESS_PROBABILITY_HIGH) {
+                return simulationResult.get(i).getPath();
+            }
+        }
+        
+        // az első 10 között nincs elég nagy valószínűséggel megléphető
+        // akkor legyel az első, mert annak a legnagyobb a valószínűsége és a területe
+        return simulationResult.get(0).getPath();
     }
     
     private void initSim() {
@@ -520,13 +534,50 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
         }
     }
     
-    public void printFutureEnemies() {
-        for(FutureEnemy fe : futureEnemies) {
-            System.out.println("FutureEnemy: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability() + "%");
+    private void printCells() {
+        for(int x=0; x<ROWS; x++) {
+            for(int y=0; y<COLS; y++) {
+                String cellValue = " ";
+                
+                for(Unit u : units) {
+                    if (u.getCoord().getX() == x && u.getCoord().getY() == y) {
+                        cellValue = "¤";
+                    }
+                }
+                
+                for(Enemy e : enemies) {
+                    if (e.getCoord().getX() == x && e.getCoord().getY() == y) {
+                        boolean right = e.getDirX() == CommonClass.Direction.RIGHT;
+                        boolean up = e.getDirY() == CommonClass.Direction.UP;
+                        
+                        if (right) {
+                            cellValue = up ? "↗" : "↘";
+                        } else {
+                            cellValue = up ? "↖" : "↙";
+                        }
+                    }
+                }
+                
+                if (cellValue.equals(" ")) {
+                    cellValue = Integer.toString(cells[x][y]);
+                }
+                
+                System.out.print( cellValue );
+            }
+            
+            System.out.println();
         }
     }
     
-    public void printSimResult() {
+    private void printFutureEnemies() {
+        /*
+        for(FutureEnemy fe : futureEnemies) {
+            System.out.println("FutureEnemy: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability() + "%");
+        }
+        */
+    }
+    
+    private void printSimResult() {
         System.out.println("*** Simulation result ***");
         System.out.println("Steps | Area | SuccessRate | Path");
         
