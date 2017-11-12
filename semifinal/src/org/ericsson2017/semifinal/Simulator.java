@@ -89,11 +89,13 @@ class SimResult
     private int steps;
     private double successProbability;
     private int rewardArea;
+    private List<CommonClass.Direction> path;
     
-    public SimResult(int steps, double successProbability, int rewardArea) {
+    public SimResult(int steps, double successProbability, int rewardArea, List<CommonClass.Direction> path) {
         this.steps = steps;
         this.successProbability = successProbability;
         this.rewardArea = rewardArea;
+        this.path = path;
     }
 
     public int getSteps() {
@@ -107,6 +109,11 @@ class SimResult
     public int getRewardArea() {
         return rewardArea;
     }
+
+    public List<CommonClass.Direction> getPath() {
+        return path;
+    }
+    
 }
 
 class Unit
@@ -154,6 +161,7 @@ public class Simulator {
     public List<SimResult> simulationResult;   // SimResults
     public List<FutureEnemy> futureEnemies = new ArrayList<>();
     public int[][] futureCells;
+    public List<Unit> futureUnit;
     
     public static final int ROWS = 80;
     public static final int COLS = 100;
@@ -165,6 +173,7 @@ public class Simulator {
         units = new ArrayList<>(); 
         attackMovements = new ArrayList<>();
         simulationResult = new ArrayList<>();
+        futureUnit = new ArrayList<>();
         
         // Cell init
         for(int sl=0; sl<response.getCells().size(); sl++) {
@@ -372,8 +381,9 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
     public List<CommonClass.Direction> findBestSteps() 
     {
         List<CommonClass.Direction> result = new ArrayList<>();
-        List<Unit> futureUnit = new ArrayList<>();
         
+        double totalCollProb = 0.0; // az ellenséggel ütközés teljes valószínűsége %
+
         attackMovements.add(new ArrayList<Coord>());
         simulationResult.clear();
         
@@ -382,31 +392,8 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
         for(int x=3; x<COLS-3; x++) {
             
             // *** SZIMULÁCIÓ INDUL ***
-            
-            // az ellenséggel ütközés teljes valószínűsége %
-            double totalCollProb = 0.0;
-            
-            // támadás vektor ürítése
-            attackMovements.get(0).clear();
-            
-            // jelenlegi ellenségeket átmásoljuk jövőbelieket tároló listába 100% valószínűséggel
-            futureEnemies.clear();
-            //enemies.stream().map((e) -> new FutureEnemy(e, 100.0)).forEach((e) -> futureEnemies.add(e));
-            for(Enemy e : enemies) {
-                FutureEnemy fe = new FutureEnemy(e, 100.0);
-                futureEnemies.add(fe);
-            }
-            
-            // jelenlegi unitokat átmásoljuk a jövőbelibe
-            futureUnit.clear();
-            units.stream().forEach((u) -> {
-                futureUnit.add(new Unit(new Coord(u.coord.getX(), u.coord.getY()), u.health, u.killer, u.owner));
-            });
-            
-            // jelenlegi táblát átmásoljuk a jövőbelibe
-            for(int xx=0; xx<ROWS; xx++) {
-                System.arraycopy(cells[xx], 0, futureCells[xx], 0, COLS);
-            }   
+            initSim();  // minden alaphelyzetbe (támadás vektor, térkép, ellenségek, támadók)
+            totalCollProb = 0.0;
             
             // x lépés jobbra
             int step;
@@ -441,15 +428,96 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
             
             System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
             
-            SimResult simResult = new SimResult(step, 100.0-totalCollProb, Math.min((x-1) * (ROWS-4), (COLS-2-x) * (ROWS-4)) );
+            List<CommonClass.Direction> path =new ArrayList<>();
+            for(int i=0; i<attackMovements.get(0).size()-1; i++) {
+                int dX = attackMovements.get(0).get(i+1).x - attackMovements.get(0).get(i).x;
+                int dY = attackMovements.get(0).get(i+1).y - attackMovements.get(0).get(i).y;
+                CommonClass.Direction dir = (dX == 0 ? (dY > 0 ? CommonClass.Direction.DOWN : CommonClass.Direction.UP) : (dX > 0 ? CommonClass.Direction.RIGHT : CommonClass.Direction.LEFT) );
+                path.add(dir);
+            }
+            SimResult simResult = new SimResult(step, 100.0-totalCollProb, Math.min((x-1) * (ROWS-4), (COLS-2-x) * (ROWS-4)), path );
             simulationResult.add(simResult);
         }
         
         
-        // előbb lefele megyünk valamennyit, aztén jobbra
+        // előbb lefele megyünk valamennyit, aztán jobbra
+        // 2-nél kevesebbet nem érdemes lefele menni
+        for(int y=2; y<ROWS-4; y++) {
+            
+            // *** SZIMULÁCIÓ INDUL ***
+            initSim();  // minden alaphelyzetbe (támadás vektor, térkép, ellenségek, támadók)
+            totalCollProb = 0.0;
+            
+            // y lépés lefele
+            int step;
+            attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+            for(step=0; step<y; step++) {
+                futureUnit.get(0).coord.y++;
+                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+
+                System.out.println("\nStep: " + step);
+                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
+                calculateEnemiesNextPos();
+                printFutureEnemies();
+            }
+
+            // COLS-2 jobbra
+            for(; step<y+COLS-2; step++) {
+                futureUnit.get(0).coord.x++;
+                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+                
+                System.out.println("\nStep: " + step);
+                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
+                calculateEnemiesNextPos();
+                printFutureEnemies();
+                double collProb = calculateCollisionProbability();
+                
+                if (collProb > 0) {
+                    System.out.println("COLLISION " + collProb + "%");
+                }
+                
+                totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
+            }
+            
+            System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
+            
+            List<CommonClass.Direction> path =new ArrayList<>();
+            for(int i=0; i<attackMovements.get(0).size()-1; i++) {
+                int dX = attackMovements.get(0).get(i+1).x - attackMovements.get(0).get(i).x;
+                int dY = attackMovements.get(0).get(i+1).y - attackMovements.get(0).get(i).y;
+                CommonClass.Direction dir = (dX == 0 ? (dY > 0 ? CommonClass.Direction.DOWN : CommonClass.Direction.UP) : (dX > 0 ? CommonClass.Direction.RIGHT : CommonClass.Direction.LEFT) );
+                path.add(dir);
+            }
+            SimResult simResult = new SimResult(step, 100.0-totalCollProb, Math.min(y*(COLS-4), (ROWS-3-y) * (COLS-4)), path );
+            simulationResult.add(simResult);
+        }
+        
         
         printSimResult();
         return result;
+    }
+    
+    private void initSim() {
+        // támadás vektor ürítése
+        attackMovements.get(0).clear();
+
+        // jelenlegi ellenségeket átmásoljuk jövőbelieket tároló listába 100% valószínűséggel
+        futureEnemies.clear();
+        for(Enemy e : enemies) {
+            FutureEnemy fe = new FutureEnemy(e, 100.0);
+            futureEnemies.add(fe);
+        }
+
+        // jelenlegi unitokat átmásoljuk a jövőbelibe
+        futureUnit.clear();
+        units.stream().forEach((u) -> {
+            futureUnit.add(new Unit(new Coord(u.coord.getX(), u.coord.getY()), u.health, u.killer, u.owner));
+        });
+
+        // jelenlegi táblát átmásoljuk a jövőbelibe
+        for(int xx=0; xx<ROWS; xx++) {
+            System.arraycopy(cells[xx], 0, futureCells[xx], 0, COLS);
+        }
     }
     
     public void printFutureEnemies() {
@@ -460,10 +528,27 @@ assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
     
     public void printSimResult() {
         System.out.println("*** Simulation result ***");
-        System.out.println("Steps | Area | SuccessRate");
+        System.out.println("Steps | Area | SuccessRate | Path");
         
         for(SimResult sr : simulationResult) {
-            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"%");
+            String p = "";
+            for(int i=0; i<sr.getPath().size(); i++) {
+                switch(sr.getPath().get(i)) {
+                    case DOWN:
+                        p += "D";
+                        break;
+                    case UP:
+                        p += "U";
+                        break;
+                    case RIGHT:
+                        p += "R";
+                        break;
+                    case LEFT:
+                        p += "L";
+                        break;
+                }
+            }
+            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + p);
         }
     }
 }
