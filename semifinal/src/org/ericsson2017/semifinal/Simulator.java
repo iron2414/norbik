@@ -16,30 +16,6 @@ import org.ericsson2017.protocol.semifinal.ResponseClass;
  *
  * @author norbi
  */
-class Coord
-{
-    public int x;
-    public int y;
-    
-    public Coord(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
-    
-    public int getX() {
-        return x;
-    }
-    
-    public int getY() {
-        return y;
-    }
-    
-    @Override
-    public String toString() {
-        return "(" + x + ":" + y + ")";
-    }
-}
-
 class Enemy 
 {
     protected Coord coord;
@@ -84,88 +60,6 @@ class FutureEnemy extends Enemy
         return probability;
     }
 }
-
-class SimResult implements Comparable<SimResult>
-{
-    private int steps;
-    private double successProbability;
-    private int rewardArea;
-    private List<CommonClass.Direction> path;
-    
-    public SimResult(int steps, double successProbability, int rewardArea, List<CommonClass.Direction> path) {
-        this.steps = steps;
-        this.successProbability = successProbability;
-        this.rewardArea = rewardArea;
-        this.path = path;
-    }
-
-    @Override
-    public int compareTo(SimResult r) {
-        if (rewardArea == r.rewardArea) {
-            if (successProbability == r.successProbability) {
-                return steps > r.steps ? -1 : (steps == r.steps ? 0 : 1);
-            } else {
-                return successProbability > r.successProbability ? -1 : 1;
-            }
-        } else {
-            return rewardArea > r.rewardArea ? -1 : 1;
-        }
-    }
-
-    public int getSteps() {
-        return steps;
-    }
-
-    public double getSuccessProbability() {
-        return successProbability;
-    }
-
-    public int getRewardArea() {
-        return rewardArea;
-    }
-
-    public List<CommonClass.Direction> getPath() {
-        return path;
-    }
-    
-}
-
-class Unit
-{
-    public Coord coord;
-    public CommonClass.Direction dir;
-    public int health;
-    public int killer;
-    public int owner;
-    
-    public Unit(Coord coord, int health, int killer, int owner) {
-        this.coord = coord;
-        this.health = health;
-        this.killer = killer;
-        this.owner = owner;
-    }
-
-    public Coord getCoord() {
-        return coord;
-    }
-
-    public CommonClass.Direction getDir() {
-        return dir;
-    }
-
-    public int getHealth() {
-        return health;
-    }
-
-    public int getKiller() {
-        return killer;
-    }
-
-    public int getOwner() {
-        return owner;
-    }
-}
-
 
 public class Simulator {
     public int[][] cells;
@@ -380,6 +274,53 @@ public class Simulator {
         }
         
         return Math.min(result, 100.0);
+    }
+    
+    /**
+     * Egy listában felsorolt útvonalakat rendre bejár és egy SimResult listát állít össze
+     * a megnyerhető területekkel, a bejárás sikerességi valószínűségével
+     * 
+     * @param paths Olyan lista, melyben irányok listája és az így elfoglalható terület adatpárok vannak
+     * @return
+     */
+    public List<SimResult> simulatePaths(List<Tuple<List<CommonClass.Direction>, Integer>> paths) {
+        simulationResult.clear();        
+        double totalCollProb; // az ellenséggel ütközés teljes valószínűsége %
+        attackMovements.add(new ArrayList<>());
+        
+        for(int sim=0; sim<paths.size(); ++sim) {
+            initSim();  // minden alaphelyzetbe (támadás vektor, térkép, ellenségek, támadók)
+            totalCollProb = 0.0;
+            int horizSteps = 0;
+            int vertSteps = 0;
+            attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+            
+            for(int step=0; step<paths.get(sim).first.size(); ++step) {
+                CommonClass.Direction stepDir = paths.get(sim).first.get(step);
+                moveUnit(futureUnit.get(0), stepDir);
+                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+
+                System.out.println("\nStep: " + step);
+                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
+                calculateEnemiesNextPos(step);
+                printFutureEnemies();
+                
+                double collProb = calculateCollisionProbability();
+                
+                if (collProb > 0) {
+                    System.out.println("COLLISION " + collProb + "%");
+                }
+                
+                totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
+            }
+            
+            System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
+            
+            SimResult simResult = new SimResult(paths.get(sim).first.size(), 100.0-totalCollProb, paths.get(sim).second, paths.get(sim).first );
+            simulationResult.add(simResult);
+        }
+        
+        return simulationResult;
     }
     
     public List<CommonClass.Direction> findBestSteps() 
@@ -601,5 +542,9 @@ public class Simulator {
             }
             System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + p);
         }
+    }
+
+    private void moveUnit(Unit get, CommonClass.Direction get0) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 }

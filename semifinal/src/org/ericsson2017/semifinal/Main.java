@@ -101,16 +101,22 @@ public class Main {
 			System.out.println("Logged in");
 			
 			ResponseClass.Response.Reader response=response();
-			Simulator simulator = new Simulator(response);
+			//Simulator simulator = new Simulator(response);
 			//simulator.printCells();
-                        List<CommonClass.Direction> stepList = simulator.findBestSteps();
-			System.out.println("\n----------------------\n");
-			//print(response);
+                        //List<CommonClass.Direction> stepList = simulator.findBestSteps();
                         
-                        for(int i=0; i<stepList.size(); ++i) {
-                            move(stepList.get(i));
+                        
+                        SimManager simManager = new SimManager(response);
+                        Tuple<List<CommonClass.Direction>, Double> stepListWithProb = simManager.findPath();
+			System.out.println("Probability: "+stepListWithProb.second+"\n----------------------\n");
+                        
+                        for(int i=0; i<stepListWithProb.first.size(); ++i) {
+                            move(stepListWithProb.first.get(i));
                             print(response());
                         }
+                        
+                        
+                        print(response);
                         
 			/*
                         for(int i=0; i<50; i++) {
