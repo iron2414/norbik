@@ -116,14 +116,18 @@ public class Main {
                             print(response);
                         }
                         
-                        simManager.setResponse(response);
-                        stepListWithProb = simManager.findPath();
-			System.out.println("2. Try "+stepListWithProb.first.size()+" steps, probability: "+stepListWithProb.second+"\n----------------------\n");
-                        
-                        for(int i=0; i<stepListWithProb.first.size(); ++i) {
-                            move(stepListWithProb.first.get(i));
-                            response=response();
-                            print(response);
+                        int health; 
+                        while ((health = response.getUnits().get(0).getHealth())>0) {
+                            simManager.setResponse(response);
+                            stepListWithProb = simManager.findPath();
+                            System.out.println("Try "+stepListWithProb.first.toString()+" steps, probability: "+stepListWithProb.second+"\n----------------------\n");
+
+                            for(int i=0; i<stepListWithProb.first.size(); ++i) {
+                                move(stepListWithProb.first.get(i));
+                                response=response();
+                                if (response.getUnits().get(0).getHealth() < health) break;
+                                print(response);
+                            }
                         }
                         
                         //print(response);

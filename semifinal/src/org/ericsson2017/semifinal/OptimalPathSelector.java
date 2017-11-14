@@ -6,6 +6,7 @@
 package org.ericsson2017.semifinal;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 
@@ -57,6 +58,13 @@ public class OptimalPathSelector {
             }
         }
         
+        Collections.sort(simulationResult, (SimResult r1, SimResult r2) -> 
+                r1.getSuccessProbability() == r2.getSuccessProbability() ? (
+                        r1.getRewardArea() == r1.getRewardArea() ? 0 : (
+                                r1.getRewardArea() < r2.getRewardArea() ? 1 : -1)
+                        ) : (
+                    r1.getSuccessProbability() < r2.getSuccessProbability() ? 1 : -1
+                ));
         
         // az első 10 között nincs elég nagy valószínűséggel megléphető
         // akkor legyel az első, mert annak a legnagyobb a valószínűsége és a területe

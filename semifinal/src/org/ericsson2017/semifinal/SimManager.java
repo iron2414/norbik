@@ -41,9 +41,36 @@ public class SimManager {
         if (pathFinder.nearEmptyField()) {    
             List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
             List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
+            printSimResult(simResult);
             return optiPathSel.findOptimalPath(simResult);
         } else {
             return new Tuple<>(pathFinder.findShortestPathToEmptyField(), 100.0);
+        }
+    }
+    
+    private void printSimResult(List<SimResult> simulationResult) {
+        System.out.println("*** Simulation result ***");
+        System.out.println("Steps | Area | SuccessRate | Path");
+        
+        for(SimResult sr : simulationResult) {
+            String p = "";
+            for(int i=0; i<sr.getPath().size(); i++) {
+                switch(sr.getPath().get(i)) {
+                    case DOWN:
+                        p += "D";
+                        break;
+                    case UP:
+                        p += "U";
+                        break;
+                    case RIGHT:
+                        p += "R";
+                        break;
+                    case LEFT:
+                        p += "L";
+                        break;
+                }
+            }
+            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + p);
         }
     }
     

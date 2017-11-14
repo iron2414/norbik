@@ -286,7 +286,7 @@ public class Simulator {
         System.out.println("\n*** SIMULATION START ***");
         
         for(int sim=0; sim<paths.size(); ++sim) {
-            System.out.println("Sim "+paths.get(sim).first.size()+" steps -- "+paths.get(sim).first.toString());
+            //System.out.println("Sim "+paths.get(sim).first.size()+" steps -- "+paths.get(sim).first.toString());
             initSim();  // minden alaphelyzetbe (támadás vektor, térkép, ellenségek, támadók)
             totalCollProb = 0.0;
             
@@ -297,21 +297,23 @@ public class Simulator {
                 moveUnit(futureUnit.get(0), stepDir);
                 attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
 
-                System.out.println("\nStep: " + step);
-                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
+                //System.out.println("\nStep: " + step);
+                //System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
                 calculateEnemiesNextPos(step);
                 printFutureEnemies();
                 
                 double collProb = calculateCollisionProbability();
                 
+                /*
                 if (collProb > 0) {
                     System.out.println("COLLISION " + collProb + "%");
                 }
+                */
                 
                 totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
             }
             
-            System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
+            //System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
             
             SimResult simResult = new SimResult(paths.get(sim).first.size(), 100.0-totalCollProb, paths.get(sim).second, paths.get(sim).first );
             simulationResult.add(simResult);
@@ -319,6 +321,7 @@ public class Simulator {
         
         return simulationResult;
     }
+    
     /*
     public List<CommonClass.Direction> findBestSteps() 
     {
@@ -516,31 +519,7 @@ public class Simulator {
         */
     }
     
-    private void printSimResult() {
-        System.out.println("*** Simulation result ***");
-        System.out.println("Steps | Area | SuccessRate | Path");
-        
-        for(SimResult sr : simulationResult) {
-            String p = "";
-            for(int i=0; i<sr.getPath().size(); i++) {
-                switch(sr.getPath().get(i)) {
-                    case DOWN:
-                        p += "D";
-                        break;
-                    case UP:
-                        p += "U";
-                        break;
-                    case RIGHT:
-                        p += "R";
-                        break;
-                    case LEFT:
-                        p += "L";
-                        break;
-                }
-            }
-            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + p);
-        }
-    }
+    
 
     private void moveUnit(Unit unit, CommonClass.Direction dir) {
         switch (dir) {

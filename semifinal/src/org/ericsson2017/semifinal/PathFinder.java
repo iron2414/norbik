@@ -224,7 +224,7 @@ public class PathFinder {
                     area = maxArea-area;
                 }
 
-                Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps((int)Math.signum(pX-pXorig)*sor, pY-pYorig, true), area);
+                Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps((int)Math.signum(pX-pXorig)*sor, pY-pYorig+2*dirY, true), area);
                 result.add(t);
             }
 
@@ -234,8 +234,8 @@ public class PathFinder {
                 if (area > maxArea/2) {
                     area = maxArea-area;
                 }
-System.out.println("Generate "+ (Math.signum(pY-pYorig)*oszlop) + ":" + (pX-pXorig));
-                Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps(pX-pXorig, (int)Math.signum(pY-pYorig)*oszlop, false), area);
+//System.out.println("Generate "+ (Math.signum(pY-pYorig)*oszlop) + ":" + (pX-pXorig));
+                Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps(pX-pXorig+2*dirX, (int)Math.signum(pY-pYorig)*oszlop, false), area);
                 result.add(t);
             }
 
