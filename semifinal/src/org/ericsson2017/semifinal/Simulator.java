@@ -70,6 +70,7 @@ public class Simulator {
     public List<FutureEnemy> futureEnemies;
     public int[][] futureCells;
     public List<Unit> futureUnit;
+    ServerResponseParser serverResponseParser;
     
     public static final int ROWS = 80;
     public static final int COLS = 100;
@@ -83,7 +84,7 @@ public class Simulator {
      */
     public static final double SUCCESS_PROBABILITY_HIGH = 95.0;
     
-    public Simulator(ResponseClass.Response.Reader response) {
+    public Simulator(ServerResponseParser serverResponseParser) {
         cells = new int[ROWS][COLS];
         futureCells = new int[ROWS][COLS];
         futureEnemies = new ArrayList<>();
@@ -93,33 +94,15 @@ public class Simulator {
         simulationResult = new ArrayList<>();
         futureUnit = new ArrayList<>();
         futureEnemiesHistory = new ArrayList<>();
+        this.serverResponseParser = serverResponseParser;
         
-        // Cell init
-        for(int sl=0; sl<response.getCells().size(); sl++) {
-            for(int i=0; i<response.getCells().get(sl).size(); i++) {
-                cells[sl][i] = response.getCells().get(sl).get(i).getOwner();
-            }
-        }
-        
-        // Enemies init
-        for(int e = 0; e<response.getEnemies().size(); e++) {
-            Coord coord = new Coord(response.getEnemies().get(e).getPosition().getX(), 
-                    response.getEnemies().get(e).getPosition().getY());
-            Enemy enemy = new Enemy(coord, response.getEnemies().get(e).getDirection().getHorizontal(), 
-                    response.getEnemies().get(e).getDirection().getVertical());
-            
-            enemies.add(enemy);
-        }
-        
-        // Units init
-        for(int u = 0; u<response.getUnits().size(); u++) {
-            Coord coord = new Coord(response.getUnits().get(0).getPosition().getX(), 
-                    response.getUnits().get(0).getPosition().getY());
-            Unit unit = new Unit(coord, response.getUnits().get(0).getHealth(), 
-                    response.getUnits().get(0).getKiller(),
-                    response.getUnits().get(0).getOwner());
-            units.add(unit);
-        }
+        responseChanged();
+    }
+    
+    public final void responseChanged() {
+        cells = serverResponseParser.getCells();
+        enemies = serverResponseParser.getEnemies();
+        units = serverResponseParser.getUnits();
     }
     
     private List<FutureEnemy> bounceEnemy(int pX, int pY, CommonClass.Direction dX, CommonClass.Direction dY, double probability)
@@ -544,7 +527,20 @@ public class Simulator {
         }
     }
 
-    private void moveUnit(Unit get, CommonClass.Direction get0) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    private void moveUnit(Unit unit, CommonClass.Direction dir) {
+        switch (dir) {
+            case RIGHT:
+                ++unit.coord.x;
+                break;
+            case LEFT:
+                --unit.coord.x;
+                break;
+            case UP:
+                --unit.coord.y;
+                break;
+            case DOWN:
+                ++unit.coord.y;
+                break;
+        }
     }
 }

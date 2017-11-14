@@ -108,15 +108,25 @@ public class Main {
                         
                         SimManager simManager = new SimManager(response);
                         Tuple<List<CommonClass.Direction>, Double> stepListWithProb = simManager.findPath();
-			System.out.println("Probability: "+stepListWithProb.second+"\n----------------------\n");
+			System.out.println("1. Try "+stepListWithProb.first.size()+" steps, probability: "+stepListWithProb.second+"\n----------------------\n");
                         
                         for(int i=0; i<stepListWithProb.first.size(); ++i) {
                             move(stepListWithProb.first.get(i));
-                            print(response());
+                            response=response();
+                            print(response);
                         }
                         
+                        simManager.setResponse(response);
+                        stepListWithProb = simManager.findPath();
+			System.out.println("2. Try "+stepListWithProb.first.size()+" steps, probability: "+stepListWithProb.second+"\n----------------------\n");
                         
-                        print(response);
+                        for(int i=0; i<stepListWithProb.first.size(); ++i) {
+                            move(stepListWithProb.first.get(i));
+                            response=response();
+                            print(response);
+                        }
+                        
+                        //print(response);
                         
 			/*
                         for(int i=0; i<50; i++) {

@@ -3,7 +3,6 @@ package org.ericsson2017.semifinal;
 import java.util.ArrayList;
 import java.util.List;
 import org.ericsson2017.protocol.semifinal.CommonClass;
-import org.ericsson2017.protocol.semifinal.ResponseClass;
 import static org.ericsson2017.semifinal.Simulator.COLS;
 import static org.ericsson2017.semifinal.Simulator.ROWS;
 
@@ -14,27 +13,21 @@ import static org.ericsson2017.semifinal.Simulator.ROWS;
 public class PathFinder {
     public int[][] cells;
     public List<Unit> units;
+    ServerResponseParser serverResponseParser;
     
-    public PathFinder(ResponseClass.Response.Reader response) {
+    public PathFinder(ServerResponseParser serverResponseParser) {
         cells = new int[ROWS][COLS];
         units = new ArrayList<>(); 
+        this.serverResponseParser = serverResponseParser;
         
-        // Cell init
-        for(int sl=0; sl<response.getCells().size(); sl++) {
-            for(int i=0; i<response.getCells().get(sl).size(); i++) {
-                cells[sl][i] = response.getCells().get(sl).get(i).getOwner();
-            }
-        }
+        responseChanged();
+    }
+    
+    public final void responseChanged() {
+        cells = serverResponseParser.getCells();
+        units = serverResponseParser.getUnits();
         
-        // Units init
-        for(int u = 0; u<response.getUnits().size(); u++) {
-            Coord coord = new Coord(response.getUnits().get(0).getPosition().getX(), 
-                    response.getUnits().get(0).getPosition().getY());
-            Unit unit = new Unit(coord, response.getUnits().get(0).getHealth(), 
-                    response.getUnits().get(0).getKiller(),
-                    response.getUnits().get(0).getOwner());
-            units.add(unit);
-        }
+        System.out.println("PathFinder response changed. Unit pos: "+units.get(0).coord.toString());
     }
     
     public boolean nearEmptyField() {
@@ -71,82 +64,86 @@ public class PathFinder {
         List<CommonClass.Direction> result = new ArrayList<>();
         Unit unit = units.get(0);
         
-        if (cells[unit.coord.x][unit.coord.y] > 0) {
-            CommonClass.Direction bestDir = CommonClass.Direction.RIGHT;
-            int bestSteps = Integer.MAX_VALUE;
-            
-            if (unit.coord.x < ROWS) {
-                // próbáljuk lefele
-                int steps = 0;
-                int x = unit.coord.x;
-                int y = unit.coord.y;
-                while (++x < ROWS) {
-                    ++steps;
-                    if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                    if (y < COLS && cells[x][y+1]==0) break; // a jobb alsó sarokban van egy üres mező
-                    if (y > 0 && cells[x][y-1]==0) break;   // a bal alsó sarokban van egy üres mező
-                }
-                if (x < ROWS && steps < bestSteps) {
-                    bestSteps = steps;
-                    bestDir = CommonClass.Direction.DOWN;
-                }
+        assert cells[unit.coord.x][unit.coord.y] > 0;   // nem szabad, hogy üres mezőn álljunk
+        
+        CommonClass.Direction bestDir = CommonClass.Direction.RIGHT;
+        int bestSteps = Integer.MAX_VALUE;
+
+        if (unit.coord.x < ROWS) {
+            // próbáljuk lefele
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            while (++x < ROWS) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (y < COLS && cells[x][y+1]==0) break; // a jobb alsó sarokban van egy üres mező
+                if (y > 0 && cells[x][y-1]==0) break;   // a bal alsó sarokban van egy üres mező
             }
-            
-            if (unit.coord.x > 0) {
-                // próbáljuk felfele
-                int steps = 0;
-                int x = unit.coord.x;
-                int y = unit.coord.y;
-                while (--x > 0) {
-                    ++steps;
-                    if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                    if (y < COLS && cells[x][y+1]==0) break; // a jobb felső sarokban van egy üres mező
-                    if (y > 0 && cells[x][y-1]==0) break;   // a bal felső sarokban van egy üres mező
-                }
-                if (x > 0 && steps < bestSteps) {
-                    bestSteps = steps;
-                    bestDir = CommonClass.Direction.UP;
-                }
-            }
-            
-            if (unit.coord.y < COLS) {
-                // próbáljuk jobbra
-                int steps = 0;
-                int x = unit.coord.x;
-                int y = unit.coord.y;
-                while (++y < COLS) {
-                    ++steps;
-                    if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                    if (x < ROWS && cells[x+1][y]==0) break; // a jobb alsó sarokban van egy üres mező
-                    if (x > 0 && cells[x-1][y]==0) break;   // a jobb felső sarokban van egy üres mező
-                }
-                if (y < COLS && steps < bestSteps) {
-                    bestSteps = steps;
-                    bestDir = CommonClass.Direction.RIGHT;
-                }
-            }
-            
-            if (unit.coord.y > 0) {
-                // próbáljuk balra
-                int steps = 0;
-                int x = unit.coord.x;
-                int y = unit.coord.y;
-                while (--y > 0) {
-                    ++steps;
-                    if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                    if (x < ROWS && cells[x+1][y]==0) break; // a bal alsó sarokban van egy üres mező
-                    if (x > 0 && cells[x-1][y]==0) break;   // a bal felső sarokban van egy üres mező
-                }
-                if (y > 0 && steps < bestSteps) {
-                    bestSteps = steps;
-                    bestDir = CommonClass.Direction.LEFT;
-                }
-            }
-            
-            for(int i=0; i<bestSteps; ++i) {
-                result.add(bestDir);
+            if (x < ROWS && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.DOWN;
             }
         }
+
+        if (unit.coord.x > 0) {
+            // próbáljuk felfele
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            while (--x > 0) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (y < COLS && cells[x][y+1]==0) break; // a jobb felső sarokban van egy üres mező
+                if (y > 0 && cells[x][y-1]==0) break;   // a bal felső sarokban van egy üres mező
+            }
+            if (x > 0 && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.UP;
+            }
+        }
+
+        if (unit.coord.y < COLS) {
+            // próbáljuk jobbra
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            
+            while (++y < COLS) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (x < ROWS && cells[x+1][y]==0) break; // a jobb alsó sarokban van egy üres mező
+                if (x > 0 && cells[x-1][y]==0) break;   // a jobb felső sarokban van egy üres mező
+            }
+            if (y < COLS && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.RIGHT;
+            }
+        }
+
+        if (unit.coord.y > 0) {
+            // próbáljuk balra
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            while (--y > 0) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (x < ROWS && cells[x+1][y]==0) break; // a bal alsó sarokban van egy üres mező
+                if (x > 0 && cells[x-1][y]==0) break;   // a bal felső sarokban van egy üres mező
+            }
+            if (y > 0 && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.LEFT;
+            }
+        }
+        
+        // eggyel kevesebbet kell az adott irányba lépni, mert nem kell "belemenni" a üres mezőbe
+        // hanem előtte meg kell állni
+        for(int i=0; i<bestSteps-1; ++i) {
+            result.add(bestDir);
+        }
+    
         
         return result;
     }
@@ -157,8 +154,9 @@ public class PathFinder {
      * ezeket lehet majd a szimulátoron végigfuttatni
      * 
      * @return 
+     * @throws java.lang.Throwable 
      */
-    public List<Tuple<List<CommonClass.Direction>, Integer>> findCrossPaths() {
+    public List<Tuple<List<CommonClass.Direction>, Integer>> findCrossPaths() throws Throwable {
         List<Tuple<List<CommonClass.Direction>, Integer>> result = new ArrayList<>();
         Unit unit = units.get(0);
         
@@ -241,6 +239,9 @@ public class PathFinder {
                 result.add(t);
             }
             
+        } else {
+            // pont nekimentem a pálya oldalának
+            throw new Throwable("Not implemented");
         }
         
         return result;

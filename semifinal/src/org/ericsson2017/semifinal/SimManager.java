@@ -1,11 +1,8 @@
 package org.ericsson2017.semifinal;
 
-import java.util.ArrayList;
 import java.util.List;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 import org.ericsson2017.protocol.semifinal.ResponseClass;
-import static org.ericsson2017.semifinal.Simulator.COLS;
-import static org.ericsson2017.semifinal.Simulator.ROWS;
 
 /**
  *
@@ -13,14 +10,22 @@ import static org.ericsson2017.semifinal.Simulator.ROWS;
  */
 public class SimManager {
     
+    ServerResponseParser serverResponseParser;
     PathFinder pathFinder;
     Simulator simulator;
-    OptimalPathSelector opiPathSel;
+    OptimalPathSelector optiPathSel;
 
     public SimManager(ResponseClass.Response.Reader response) {
-        pathFinder = new PathFinder(response);
-        simulator = new Simulator(response);
-        opiPathSel = new OptimalPathSelector();
+        serverResponseParser = new ServerResponseParser(response);
+        pathFinder = new PathFinder(serverResponseParser);
+        simulator = new Simulator(serverResponseParser);
+        optiPathSel = new OptimalPathSelector();
+    }
+    
+    public void setResponse(ResponseClass.Response.Reader response) {
+        serverResponseParser.setResponse(response);
+        pathFinder.responseChanged();
+        simulator.responseChanged();
     }
     
     /**
@@ -29,13 +34,14 @@ public class SimManager {
      * Ha nem a harcmező szélén állunk, akkor a legrövidebb úton előbb az oda vezető utat adja vissza!!!
      * 
      * @return Tuple Az irány lista és az áthaladás valószínűsége
+     * @throws java.lang.Throwable
      */
-    public Tuple<List<CommonClass.Direction>, Double> findPath() {
+    public Tuple<List<CommonClass.Direction>, Double> findPath() throws Throwable {
         // harcmező szélén állunk?
         if (pathFinder.nearEmptyField()) {    
             List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
             List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
-            return opiPathSel.findOptimalPath(simResult);
+            return optiPathSel.findOptimalPath(simResult);
         } else {
             return new Tuple<>(pathFinder.findShortestPathToEmptyField(), 100.0);
         }
