@@ -9,6 +9,7 @@ package org.ericsson2017.semifinal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 import org.ericsson2017.protocol.semifinal.ResponseClass;
 
@@ -190,8 +191,14 @@ public class Simulator {
     private void calculateEnemiesNextPos(int step)
     {
         if (futureEnemiesHistory.size() > step) {
+            List<FutureEnemy> futureEnemiesClone = futureEnemiesHistory.get(step).stream().collect(Collectors.toList());
+            
             futureEnemies.clear();
-            futureEnemies.addAll(futureEnemiesHistory.get(step));
+            futureEnemies.addAll(futureEnemiesClone);
+            
+            //futureEnemies.clear();
+            //futureEnemies.addAll(futureEnemiesHistory.get(step));
+            //System.out.println("Cached future enemy calc step, "+futureEnemies.size()+" traces.");
             return;
         }
         
@@ -236,10 +243,11 @@ public class Simulator {
             }
         }
         
-        System.out.println("New enemy traces: " + newFutureEnemies.size());
+        //System.out.println("New enemy traces: " + newFutureEnemies.size());
         futureEnemies.addAll(newFutureEnemies);
         
-        futureEnemiesHistory.add(futureEnemies);
+        List<FutureEnemy> futureEnemiesClone = futureEnemies.stream().collect(Collectors.toList());
+        futureEnemiesHistory.add(futureEnemiesClone);
     }
 
     private double calculateCollisionProbability()
@@ -270,12 +278,15 @@ public class Simulator {
         simulationResult.clear();        
         double totalCollProb; // az ellenséggel ütközés teljes valószínűsége %
         attackMovements.add(new ArrayList<>());
+        futureEnemiesHistory.clear();
+
+        System.out.println("\n*** SIMULATION START ***");
         
         for(int sim=0; sim<paths.size(); ++sim) {
+            System.out.println("Sim "+paths.get(sim).first.size()+" steps -- "+paths.get(sim).first.toString());
             initSim();  // minden alaphelyzetbe (támadás vektor, térkép, ellenségek, támadók)
             totalCollProb = 0.0;
-            int horizSteps = 0;
-            int vertSteps = 0;
+            
             attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
             
             for(int step=0; step<paths.get(sim).first.size(); ++step) {
@@ -298,6 +309,8 @@ public class Simulator {
             }
             
             System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
+            System.out.println("History size: "+futureEnemiesHistory.size());
+            System.out.println("History[0] size: "+futureEnemiesHistory.get(0).toString());
             
             SimResult simResult = new SimResult(paths.get(sim).first.size(), 100.0-totalCollProb, paths.get(sim).second, paths.get(sim).first );
             simulationResult.add(simResult);
@@ -494,11 +507,11 @@ public class Simulator {
     }
     
     private void printFutureEnemies() {
-        /*
+        
         for(FutureEnemy fe : futureEnemies) {
             System.out.println("FutureEnemy: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability() + "%");
         }
-        */
+        
     }
     
     private void printSimResult() {
@@ -530,16 +543,16 @@ public class Simulator {
     private void moveUnit(Unit unit, CommonClass.Direction dir) {
         switch (dir) {
             case RIGHT:
-                ++unit.coord.x;
+                ++unit.coord.y;
                 break;
             case LEFT:
-                --unit.coord.x;
-                break;
-            case UP:
                 --unit.coord.y;
                 break;
+            case UP:
+                --unit.coord.x;
+                break;
             case DOWN:
-                ++unit.coord.y;
+                ++unit.coord.x;
                 break;
         }
     }
