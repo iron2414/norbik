@@ -8,13 +8,22 @@ package org.ericsson2017.semifinal;
 import java.util.Collections;
 import java.util.List;
 import org.ericsson2017.protocol.semifinal.CommonClass;
-import static org.ericsson2017.semifinal.Simulator.SUCCESS_PROBABILITY_HIGH;
 
 /**
  *
  * @author norbi
  */
 public class OptimalPathSelector {
+    
+    /**
+     * "Elég nagy" sikerességi ráta -> ha ennél nagyobb egy áthaladás sikerességének
+     * valószínűsége, akkor érdemes megpróbálni
+     */
+    public static final double SUCCESS_PROBABILITY_HIGH = 95.0;
+    /**
+     * "Elég nagy" területnyereség -> a maximálisan megszerezhető terület ennyi %-a már jó kompromisszum
+     */
+    public static final double REWARD_AREA_BIG_ENOUGH = 60.0;
     
     /**
      * Optimális áthaladási útvonalat keres a szimuláció eredménye alapján
@@ -29,12 +38,25 @@ public class OptimalPathSelector {
         Collections.sort(simulationResult);
         printSimResult(simulationResult);
         
-        // a 10 legjobb lehetőség közül azt választjuk, amelyiknek a valószínűsége elég nagy
-        for(int i=0; i<10; ++i) {
-            if (simulationResult.get(i).getSuccessProbability() >= SUCCESS_PROBABILITY_HIGH) {
-                return new Tuple(simulationResult.get(i).getPath(), simulationResult.get(i).getSuccessProbability());
+        Tuple<List<CommonClass.Direction>, Double> bestResult = null;
+        int areaOfBestResult = 0;
+        
+        // az első olyan, amelyiknek a valószínűsége elég nagy
+        for(SimResult sr : simulationResult) {
+            if (sr.getSuccessProbability() >= SUCCESS_PROBABILITY_HIGH) {
+                bestResult = new Tuple(sr.getPath(), sr.getSuccessProbability());
+                areaOfBestResult = sr.getRewardArea();
             }
         }
+        
+        if (bestResult != null) {
+            // a területszerzés is elég nagy?
+            int maxArea = simulationResult.get(0).getRewardArea();
+            if (areaOfBestResult > maxArea * REWARD_AREA_BIG_ENOUGH/100.0) {
+                return bestResult;
+            }
+        }
+        
         
         // az első 10 között nincs elég nagy valószínűséggel megléphető
         // akkor legyel az első, mert annak a legnagyobb a valószínűsége és a területe

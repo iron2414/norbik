@@ -56,6 +56,11 @@ class FutureEnemy extends Enemy
         this.probability = probability;
     }
 
+    public FutureEnemy(FutureEnemy fe) {
+        super(new Coord(fe.getCoord().getX(), fe.getCoord().getY()), fe.getDirX(), fe.getDirY());
+        this.probability = fe.getProbability();
+    }
+
     
     public double getProbability() {
         return probability;
@@ -79,12 +84,6 @@ public class Simulator {
     public static int simStep = 0;
     public List<List<FutureEnemy>> futureEnemiesHistory;    // cache
 
-    /**
-     * "Elég nagy" sikerességi ráta -> ha ennél nagyobb egy áthaladás sikerességének
-     * valószínűsége, akkor érdemes megpróbálni
-     */
-    public static final double SUCCESS_PROBABILITY_HIGH = 95.0;
-    
     public Simulator(ServerResponseParser serverResponseParser) {
         cells = new int[ROWS][COLS];
         futureCells = new int[ROWS][COLS];
@@ -246,7 +245,11 @@ public class Simulator {
         //System.out.println("New enemy traces: " + newFutureEnemies.size());
         futureEnemies.addAll(newFutureEnemies);
         
-        List<FutureEnemy> futureEnemiesClone = futureEnemies.stream().collect(Collectors.toList());
+        //List<FutureEnemy> futureEnemiesClone = futureEnemies.stream().collect(Collectors.toList());
+        List<FutureEnemy> futureEnemiesClone = new ArrayList<>(futureEnemies.size());
+        futureEnemies.stream().map((fe) -> new FutureEnemy(fe)).forEach((futureEnemyClone) -> {
+            futureEnemiesClone.add(futureEnemyClone);
+        });
         futureEnemiesHistory.add(futureEnemiesClone);
     }
 
@@ -309,8 +312,6 @@ public class Simulator {
             }
             
             System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
-            System.out.println("History size: "+futureEnemiesHistory.size());
-            System.out.println("History[0] size: "+futureEnemiesHistory.get(0).toString());
             
             SimResult simResult = new SimResult(paths.get(sim).first.size(), 100.0-totalCollProb, paths.get(sim).second, paths.get(sim).first );
             simulationResult.add(simResult);
@@ -318,7 +319,7 @@ public class Simulator {
         
         return simulationResult;
     }
-    
+    /*
     public List<CommonClass.Direction> findBestSteps() 
     {
         List<CommonClass.Direction> result = new ArrayList<>();
@@ -447,6 +448,7 @@ public class Simulator {
         // akkor legyel az első, mert annak a legnagyobb a valószínűsége és a területe
         return simulationResult.get(0).getPath();
     }
+    */
     
     private void initSim() {
         // támadás vektor ürítése
@@ -507,11 +509,11 @@ public class Simulator {
     }
     
     private void printFutureEnemies() {
-        
+        /*
         for(FutureEnemy fe : futureEnemies) {
             System.out.println("FutureEnemy: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability() + "%");
         }
-        
+        */
     }
     
     private void printSimResult() {
