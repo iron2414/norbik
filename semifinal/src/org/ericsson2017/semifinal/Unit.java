@@ -19,11 +19,12 @@ public class Unit
     public int killer;
     public int owner;
     
-    public Unit(Coord coord, int health, int killer, int owner) {
+    public Unit(Coord coord, int health, int killer, int owner, CommonClass.Direction dir) {
         this.coord = coord;
         this.health = health;
         this.killer = killer;
         this.owner = owner;
+        this.dir = dir;
     }
 
     public Coord getCoord() {

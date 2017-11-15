@@ -442,7 +442,7 @@ public class Simulator {
         // jelenlegi unitokat átmásoljuk a jövőbelibe
         futureUnit.clear();
         units.stream().forEach((u) -> {
-            futureUnit.add(new Unit(new Coord(u.coord.getX(), u.coord.getY()), u.health, u.killer, u.owner));
+            futureUnit.add(new Unit(new Coord(u.coord.getX(), u.coord.getY()), u.health, u.killer, u.owner, u.dir));
         });
 
         // jelenlegi táblát átmásoljuk a jövőbelibe

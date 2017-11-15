@@ -321,22 +321,22 @@ public class PathFinder {
         int uX = units.get(unitNum).coord.getX();
         int uY = units.get(unitNum).coord.getY();
         
-        double distTL = calculateDistance(new Coord(left, top), new Coord(uX, uY));
-        double distBL = calculateDistance(new Coord(left, bottom), new Coord(uX, uY));
-        double distTR = calculateDistance(new Coord(right, top), new Coord(uX, uY));
-        double distBR = calculateDistance(new Coord(right, bottom), new Coord(uX, uY));
+        double distTL = calculateDistance(new Coord(top, left), new Coord(uX, uY));
+        double distBL = calculateDistance(new Coord(bottom, left), new Coord(uX, uY));
+        double distTR = calculateDistance(new Coord(top, right), new Coord(uX, uY));
+        double distBR = calculateDistance(new Coord(bottom, right), new Coord(uX, uY));
         
-        Coord result = new Coord(left, top);
+        Coord result = new Coord(top, left);
         double nearest = distTL;
         if (distBL < nearest) {
-            result = new Coord(left, bottom);
+            result = new Coord(bottom, left);
             nearest = distBL;
         }
         if (distTR < nearest) {
-            result = new Coord(right, top);
+            result = new Coord(top, right);
             nearest = distTR;
         }
-        if (distBR < nearest) result = new Coord(right, bottom);
+        if (distBR < nearest) result = new Coord(bottom, right);
         
         return result;
     }
@@ -354,7 +354,7 @@ public class PathFinder {
         Unit unit = units.get(0);
         List<CommonClass.Direction> result = new ArrayList<>();
         
-        result.add(unit.dir);
+        result.add(unit.dir == null ? CommonClass.Direction.DOWN : unit.dir);
         
         return result;
     }

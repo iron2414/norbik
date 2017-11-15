@@ -51,7 +51,9 @@ public class ServerResponseParser {
                     response.getUnits().get(u).getPosition().getY());
             Unit unit = new Unit(coord, response.getUnits().get(u).getHealth(), 
                     response.getUnits().get(u).getKiller(),
-                    response.getUnits().get(u).getOwner());
+                    response.getUnits().get(u).getOwner(),
+                    response.getUnits().get(u).getDirection()
+            );
             units.add(unit);
         }
     }
