@@ -45,7 +45,7 @@ public class OptimalPathSelector {
         // az első olyan, amelyiknek a valószínűsége elég nagy
         for(SimResult sr : simulationResult) {
             if (sr.getSuccessProbability() >= SUCCESS_PROBABILITY_HIGH) {
-                bestResult = new Tuple(sr.getPath(), sr.getSuccessProbability());
+                bestResult = new Tuple<>(sr.getPath(), sr.getSuccessProbability());
                 areaOfBestResult = sr.getRewardArea();
             }
         }
@@ -68,7 +68,7 @@ public class OptimalPathSelector {
         
         // az első 10 között nincs elég nagy valószínűséggel megléphető
         // akkor legyel az első, mert annak a legnagyobb a valószínűsége és a területe
-        return new Tuple(simulationResult.get(0).getPath(), simulationResult.get(0).getSuccessProbability());
+        return new Tuple<>(simulationResult.get(0).getPath(), simulationResult.get(0).getSuccessProbability());
     }
     
     private void printSimResult(List<SimResult> simulationResult) {

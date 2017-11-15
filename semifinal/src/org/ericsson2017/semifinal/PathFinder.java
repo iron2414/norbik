@@ -54,7 +54,7 @@ public class PathFinder {
         if (unit.coord.x>0 && unit.coord.y<COLS && cells[unit.coord.x-1][unit.coord.y+1]==0) {
             return true;
         }
-        if (unit.coord.x>0 && unit.coord.y>0 && cells[unit.coord.x+1][unit.coord.y-1]==0) {
+        if (unit.coord.x>0 && unit.coord.y>0 && cells[unit.coord.x-1][unit.coord.y-1]==0) {
             return true;
         }
         return false;
@@ -138,13 +138,43 @@ public class PathFinder {
             }
         }
         
+        // vízszintes/függőleges mozgással nem lett meg az "aréna"?
+        if (bestSteps == Integer.MAX_VALUE) {
+            System.out.println("Arena not found with horiz/vert search, trying other method");
+            // keresem a befoglaló téglalapot
+            int l=COLS, r=0, t=ROWS, b=0;
+            for(int co=0; co<COLS; ++co) {
+                for(int ro=0; ro<ROWS; ++ro) {
+                    if (cells[ro][co]==0) {
+                        t = Math.min(ro, t);
+                        b = Math.max(ro, b);
+                        l = Math.min(co, l);
+                        r = Math.max(co, r);
+                    }
+                }
+            }
+            System.out.println("Arena coords: ("+t+":"+l+") - ("+b+":"+r+")");
+            // melyik sarka van legközelebb?
+            Coord nearestEdge = findNearestEdge(t, l, b, r, 0);
+            System.out.println("Nearest edge: "+nearestEdge);
+            System.out.println("Create steps: "+
+                    (nearestEdge.getX() - unit.coord.getX() - (int)Math.signum(nearestEdge.getX() - unit.coord.getX())) + ":" +
+                    (nearestEdge.getY() - unit.coord.getY() - (int)Math.signum(nearestEdge.getY() - unit.coord.getY()))
+                    );
+            return createPathByXYSteps(
+                    nearestEdge.getX() - unit.coord.getX() - (int)Math.signum(nearestEdge.getX() - unit.coord.getX()), 
+                    nearestEdge.getY() - unit.coord.getY() - (int)Math.signum(nearestEdge.getY() - unit.coord.getY()), 
+                    true
+                    );
+        }
+        
         // eggyel kevesebbet kell az adott irányba lépni, mert nem kell "belemenni" a üres mezőbe
         // hanem előtte meg kell állni
         for(int i=0; i<bestSteps-1; ++i) {
             result.add(bestDir);
         }
-    
-        
+        System.out.println("Found path to arena in "+(bestSteps-1)+" steps in direction "+bestDir);
+
         return result;
     }
 
@@ -285,5 +315,47 @@ public class PathFinder {
             path.addAll(pathX);
         }
         return path;
+    }
+
+    private Coord findNearestEdge(int top, int left, int bottom, int right, int unitNum) {
+        int uX = units.get(unitNum).coord.getX();
+        int uY = units.get(unitNum).coord.getY();
+        
+        double distTL = calculateDistance(new Coord(left, top), new Coord(uX, uY));
+        double distBL = calculateDistance(new Coord(left, bottom), new Coord(uX, uY));
+        double distTR = calculateDistance(new Coord(right, top), new Coord(uX, uY));
+        double distBR = calculateDistance(new Coord(right, bottom), new Coord(uX, uY));
+        
+        Coord result = new Coord(left, top);
+        double nearest = distTL;
+        if (distBL < nearest) {
+            result = new Coord(left, bottom);
+            nearest = distBL;
+        }
+        if (distTR < nearest) {
+            result = new Coord(right, top);
+            nearest = distTR;
+        }
+        if (distBR < nearest) result = new Coord(right, bottom);
+        
+        return result;
+    }
+
+    private double calculateDistance(Coord coord1, Coord coord2) {
+        return Math.hypot(coord1.getX()-coord2.getX(), coord1.getY()-coord2.getY());
+    }
+
+    public boolean inEmptyField() {
+        Unit unit = units.get(0);
+        return cells[unit.getCoord().getX()][unit.getCoord().getY()] == 0;
+    }
+
+    public List<CommonClass.Direction> findUnitLastDirection() {
+        Unit unit = units.get(0);
+        List<CommonClass.Direction> result = new ArrayList<>();
+        
+        result.add(unit.dir);
+        
+        return result;
     }
 }

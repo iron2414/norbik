@@ -37,8 +37,13 @@ public class SimManager {
      * @throws java.lang.Throwable
      */
     public Tuple<List<CommonClass.Direction>, Double> findPath() throws Throwable {
+        // véletlenül a harcmezőn ragadtunk [biztonsági feature]
+        if (pathFinder.inEmptyField()) {
+            // megyünk tovább
+            return new Tuple<>(pathFinder.findUnitLastDirection(), 100.0);
+        }
         // harcmező szélén állunk?
-        if (pathFinder.nearEmptyField()) {    
+        if (pathFinder.nearEmptyField()) {
             List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
             List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
             printSimResult(simResult);

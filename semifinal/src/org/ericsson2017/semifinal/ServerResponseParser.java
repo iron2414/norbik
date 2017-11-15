@@ -2,6 +2,7 @@ package org.ericsson2017.semifinal;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.capnproto.StructList;
 import org.ericsson2017.protocol.semifinal.ResponseClass;
 import static org.ericsson2017.semifinal.Simulator.COLS;
 import static org.ericsson2017.semifinal.Simulator.ROWS;
@@ -26,8 +27,9 @@ public class ServerResponseParser {
     public final void setResponse(ResponseClass.Response.Reader response) {
         // Cell init
         for(int sl=0; sl<response.getCells().size(); sl++) {
-            for(int i=0; i<response.getCells().get(sl).size(); i++) {
-                cells[sl][i] = response.getCells().get(sl).get(i).getOwner();
+            StructList.Reader<ResponseClass.Cell.Reader> c = response.getCells().get(sl);
+            for(int i=0; i<c.size(); i++) {
+                cells[sl][i] = c.get(i).getOwner();
             }
         }
         
@@ -45,11 +47,11 @@ public class ServerResponseParser {
         // Units init
         units.clear();
         for(int u = 0; u<response.getUnits().size(); u++) {
-            Coord coord = new Coord(response.getUnits().get(0).getPosition().getX(), 
-                    response.getUnits().get(0).getPosition().getY());
-            Unit unit = new Unit(coord, response.getUnits().get(0).getHealth(), 
-                    response.getUnits().get(0).getKiller(),
-                    response.getUnits().get(0).getOwner());
+            Coord coord = new Coord(response.getUnits().get(u).getPosition().getX(), 
+                    response.getUnits().get(u).getPosition().getY());
+            Unit unit = new Unit(coord, response.getUnits().get(u).getHealth(), 
+                    response.getUnits().get(u).getKiller(),
+                    response.getUnits().get(u).getOwner());
             units.add(unit);
         }
     }

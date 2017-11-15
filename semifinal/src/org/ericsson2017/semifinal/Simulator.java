@@ -17,31 +17,6 @@ import org.ericsson2017.protocol.semifinal.ResponseClass;
  *
  * @author norbi
  */
-class Enemy 
-{
-    protected Coord coord;
-    protected CommonClass.Direction dirX;
-    protected CommonClass.Direction dirY;
-    
-    public Enemy(Coord coord, CommonClass.Direction dirX, CommonClass.Direction dirY) {
-        this.coord = coord;
-        this.dirX = dirX;
-        this.dirY = dirY;
-    }
-    
-    public Coord getCoord() {
-        return coord;
-    }
-
-    public CommonClass.Direction getDirX() {
-        return dirX;
-    }
-
-    public CommonClass.Direction getDirY() {
-        return dirY;
-    }
-}
-
 class FutureEnemy extends Enemy 
 {
     public double probability;

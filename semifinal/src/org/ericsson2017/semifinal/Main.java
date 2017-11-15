@@ -104,7 +104,7 @@ public class Main {
 			//Simulator simulator = new Simulator(response);
 			//simulator.printCells();
                         //List<CommonClass.Direction> stepList = simulator.findBestSteps();
-                        
+                        print(response);
                         
                         SimManager simManager = new SimManager(response);
                         Tuple<List<CommonClass.Direction>, Double> stepListWithProb = simManager.findPath();
