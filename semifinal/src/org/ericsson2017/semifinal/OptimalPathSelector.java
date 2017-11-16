@@ -20,11 +20,11 @@ public class OptimalPathSelector {
      * "Elég nagy" sikerességi ráta -> ha ennél nagyobb egy áthaladás sikerességének
      * valószínűsége, akkor érdemes megpróbálni
      */
-    public static final double SUCCESS_PROBABILITY_HIGH = 95.0;
+    public static final double SUCCESS_PROBABILITY_HIGH = 90.0;
     /**
      * "Elég nagy" területnyereség -> a maximálisan megszerezhető terület ennyi %-a már jó kompromisszum
      */
-    public static final double REWARD_AREA_BIG_ENOUGH = 60.0;
+    public static final double REWARD_AREA_BIG_ENOUGH = 35.0;
     
     /**
      * Optimális áthaladási útvonalat keres a szimuláció eredménye alapján
@@ -47,6 +47,7 @@ public class OptimalPathSelector {
             if (sr.getSuccessProbability() >= SUCCESS_PROBABILITY_HIGH) {
                 bestResult = new Tuple<>(sr.getPath(), sr.getSuccessProbability());
                 areaOfBestResult = sr.getRewardArea();
+                break;
             }
         }
         
