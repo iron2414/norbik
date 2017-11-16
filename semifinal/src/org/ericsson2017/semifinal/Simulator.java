@@ -429,8 +429,12 @@ public class Simulator {
     */
     
     private void initSim() {
+        initSim(true);
+    }
+    
+    private void initSim(boolean clearAttackMovements) {
         // támadás vektor ürítése
-        attackMovements.get(0).clear();
+        if (clearAttackMovements) attackMovements.get(0).clear();
 
         // jelenlegi ellenségeket átmásoljuk jövőbelieket tároló listába 100% valószínűséggel
         futureEnemies.clear();
@@ -511,5 +515,146 @@ public class Simulator {
                 ++unit.coord.x;
                 break;
         }
+    }
+
+    /**
+     * Út közbeni szimuláció: a lastStepList lépéseit már megtettük, de ezen útvonallal ütközés is "fáj"
+     * azt kell megmondani, hogy a nextStepList lépéseit követve az egyes lépésekben mekkora 
+     * valószínűséggel fogunk ellenséggel ütközni
+     * 
+     * @param lastStepList
+     * @param nextStepList
+     * @return 
+     */
+    public List<Double> simulatePathInTrip(List<CommonClass.Direction> lastStepList, List<CommonClass.Direction> nextStepList) {
+        
+        List<Double> collProb = new ArrayList<>(); // az ellenséggel ütközés valószínűsége a szimuláció egyes lépéseiben %
+        attackMovements.add(new ArrayList<>());
+        futureEnemiesHistory.clear();
+
+        Unit unit = units.get(0);
+        int uX = unit.getCoord().getX();
+        int uY = unit.getCoord().getY();
+        
+        // a lastStepList elemit az attackMovements vektorba kell másolni úgy,
+        // hogy visszafelé kell követni a lépéseket
+        for(int i = lastStepList.size()-1; i>=0; --i) {
+            switch (lastStepList.get(i)) {
+                case UP:
+                    --uX;
+                    break;
+                case DOWN:
+                    ++uX;
+                    break;
+                case RIGHT:
+                    ++uY;
+                    break;
+                case LEFT:
+                    --uY;
+                    break;
+            }
+            attackMovements.get(0).add(0, new Coord(uX, uY));   // a lista elejére kerül minden elem
+        }
+        
+        System.out.println("\n*** SIMULATION IN TRIP START ***");
+        
+        initSim(false);  // minden alaphelyzetbe (támadás vektor NEM, térkép, ellenségek, támadók)
+
+        // a támadó aktuális helyzete is kell a támadás vektorba
+        attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+
+        for(int step=0; step<nextStepList.size(); ++step) {
+            CommonClass.Direction stepDir = nextStepList.get(step);
+            moveUnit(futureUnit.get(0), stepDir);
+            attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+
+            //System.out.println("\nStep: " + step);
+            //System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
+            calculateEnemiesNextPos(step);
+            printFutureEnemies();
+
+            collProb.add(calculateCollisionProbability());
+        }
+        
+        return collProb;
+    }
+
+    /**
+     * Út közbeni többes szimuláció: a lastStepList lépéseit már megtettük, de ezen útvonallal ütközés is "fáj"
+     * azt kell megmondani, hogy a nextStepLists egyes elemeiben leírt lépéseket végigkövetve
+     * az ellenséges ütközés teljes valószínűsége mekkora
+     * Az eredményben a valószínűségi % mellé természetesen a tesztelt lépéssor listáját is vissza kell adni
+     * 
+     * 
+     * @param lastStepList
+     * @param nextStepLists
+     * @return 
+     */
+    public List<Tuple<Double, List<CommonClass.Direction>>> simulatePathsInTrip(List<CommonClass.Direction> lastStepList, List<List<CommonClass.Direction>> nextStepLists) {
+        //List<Double> collProb = new ArrayList<>(); // az ellenséggel ütközés valószínűsége a szimuláció egyes lépéseiben %
+        List<Tuple<Double, List<CommonClass.Direction>>> result = new ArrayList<>();
+        double totalCollProb = 0;
+        attackMovements.add(new ArrayList<>());
+        futureEnemiesHistory.clear();
+
+        Unit unit = units.get(0);
+        int uX = unit.getCoord().getX();
+        int uY = unit.getCoord().getY();
+        
+        // a lastStepList elemit az attackMovements vektorba kell másolni úgy,
+        // hogy visszafelé kell követni a lépéseket
+        for(int i = lastStepList.size()-1; i>=0; --i) {
+            switch (lastStepList.get(i)) {
+                case UP:
+                    --uX;
+                    break;
+                case DOWN:
+                    ++uX;
+                    break;
+                case RIGHT:
+                    ++uY;
+                    break;
+                case LEFT:
+                    --uY;
+                    break;
+            }
+            attackMovements.get(0).add(0, new Coord(uX, uY));   // a lista elejére kerül minden elem
+        }
+        
+        System.out.println("\n*** MULTI SIMULATION IN TRIP START ***");
+        
+        for(int pathStep = 0; pathStep < nextStepLists.size(); ++pathStep) {
+            totalCollProb = 0;
+            initSim(false);  // minden alaphelyzetbe (támadás vektor NEM, térkép, ellenségek, támadók)
+
+            // a támadó aktuális helyzete is kell a támadás vektorba
+            attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+
+            for(int step=0; step<nextStepLists.get(pathStep).size(); ++step) {
+                CommonClass.Direction stepDir = nextStepLists.get(pathStep).get(step);
+                moveUnit(futureUnit.get(0), stepDir);
+                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
+
+                //System.out.println("\nStep: " + step);
+                //System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
+                calculateEnemiesNextPos(step);
+                printFutureEnemies();
+
+                double collProb = calculateCollisionProbability();
+                
+                /*
+                if (collProb > 0) {
+                    System.out.println("COLLISION " + collProb + "%");
+                }
+                */
+                
+                totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
+            }
+            
+            result.add(new Tuple<>(totalCollProb, nextStepLists.get(pathStep)));
+        }
+        
+        
+        return result;
     }
 }

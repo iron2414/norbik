@@ -97,4 +97,14 @@ public class OptimalPathSelector {
             System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + p);
         }
     }
+
+    /**
+     * Optimális menekülő utat keres az ütközési valószínűségek alapján
+     * 
+     * @param collProbsList
+     * @return 
+     */
+    public List<CommonClass.Direction> findOptimalEscapePath(List<Tuple<Double, List<CommonClass.Direction>>> collProbsList) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

@@ -94,63 +94,47 @@ public class Main {
 		System.out.println("sent: move(" + dir.name() + ")");
     }
 
-    public void main() throws Throwable { 
-		frame.setVisible(true);
-		try {
-			login();
-			System.out.println("Logged in");
-			
-			ResponseClass.Response.Reader response=response();
-			//Simulator simulator = new Simulator(response);
-			//simulator.printCells();
-                        //List<CommonClass.Direction> stepList = simulator.findBestSteps();
-                        print(response);
-                        
-                        SimManager simManager = new SimManager(response);
-                        Tuple<List<CommonClass.Direction>, Double> stepListWithProb = simManager.findPath();
-			System.out.println("1. Try "+stepListWithProb.first.size()+" steps, probability: "+stepListWithProb.second+"\n----------------------\n");
-                        
-                        for(int i=0; i<stepListWithProb.first.size(); ++i) {
-                            move(stepListWithProb.first.get(i));
-                            response=response();
-                            print(response);
-                        }
-                        
-                        int health; 
-                        while ((health = response.getUnits().get(0).getHealth())>0) {
-                            simManager.setResponse(response);
-                            stepListWithProb = simManager.findPath();
-                            System.out.println("Try "+stepListWithProb.first.toString()+" steps, probability: "+stepListWithProb.second+"\n----------------------\n");
+    public void main() throws Throwable 
+    {     
+        SimManager simManager;
+        Tuple<List<CommonClass.Direction>, Double> stepListWithProb;
+        int health;
+        
+        frame.setVisible(true);
+        try {
+            login();
+            System.out.println("Logged in");
 
-                            for(int i=0; i<stepListWithProb.first.size(); ++i) {
-                                move(stepListWithProb.first.get(i));
-                                response=response();
-                                if (response.getUnits().get(0).getHealth() < health) break;
-                                print(response);
-                            }
-                        }
-                        
-                        //print(response);
-                        
-			/*
-                        for(int i=0; i<50; i++) {
-				move(CommonClass.Direction.RIGHT);
-				print(response());
-			}
-			for(int i=0; i<77; i++) {
-				move(CommonClass.Direction.DOWN);
-				print(response());
-			}
-                        for(int i=0; i<40; i++) {
-				move(CommonClass.Direction.LEFT);
-				print(response());
-			}
-                        */
-			printCells(response());
-		}
-		finally {
-			frame.dispose();
-		}
+            ResponseClass.Response.Reader response=response();
+            print(response);
+            simManager = new SimManager(response);
+
+            while ((health = response.getUnits().get(0).getHealth())>0) {
+                simManager.setResponse(response);
+                
+                // keress egy viszonylag nagy területnyereséggel kecsegtető
+                // viszonylag nagy valószínűséggel bejárható útvonalat!
+                stepListWithProb = simManager.findPath();
+                
+                List<CommonClass.Direction> stepList = stepListWithProb.first;
+                System.out.println("Try "+stepList.toString()+" steps\nProbability: "+stepListWithProb.second+"\n----------------------\n");
+
+                // kezdjük el végigjárni az ajánlott utat
+                for(int i=0; i<stepList.size(); ++i) {
+                    move(stepList.get(i));
+                    response=response();
+                    if (response.getUnits().get(0).getHealth() < health) break;
+                    print(response);
+                    
+                    // futtassuk újra a szimulációt, ellenőrizzük az ütközés valószínűségét
+                    // és ha szükséges, keressünk menekülő útvonalat!
+                    simManager.setResponse(response);
+                    stepList = simManager.checkPath(stepList, i);
+                }
+            }
+        } finally {
+            frame.dispose();
+        }
     }
 	
     public static void main(String[] args) throws Throwable {

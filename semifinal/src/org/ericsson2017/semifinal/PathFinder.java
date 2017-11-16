@@ -358,4 +358,66 @@ public class PathFinder {
         
         return result;
     }
+
+    /**
+     * Menekülő utakat keres a megadott irányra merőlegesen
+     * 
+     * A jelenlegi implementáció csak a 2 merőleges irányban gyárt le 1-1 utat az aréna széléig!
+     * 
+     * @param prohibitedDirection
+     * @return 
+     */
+    List<List<CommonClass.Direction>> findEscapeRoutes(CommonClass.Direction prohibitedDirection) {
+        List<List<CommonClass.Direction>> result = new ArrayList<>();
+        
+        Unit unit = units.get(0);
+        int origX = unit.getCoord().getX();
+        int origY = unit.getCoord().getY();
+        
+        CommonClass.Direction[] targetDirections = new CommonClass.Direction[2];
+        
+        switch (prohibitedDirection) {
+            case UP:
+            case DOWN:
+                targetDirections[0] = CommonClass.Direction.RIGHT;
+                targetDirections[1] = CommonClass.Direction.LEFT;
+                break;
+            case RIGHT:
+            case LEFT:
+                targetDirections[0] = CommonClass.Direction.UP;
+                targetDirections[1] = CommonClass.Direction.DOWN;
+                break;
+        }
+        
+        for(CommonClass.Direction dir : targetDirections) {
+            // addig kell menni az adott irányban, amíg ki nem érünk az arénából
+            int uX = origX;
+            int uY = origY;
+            List<CommonClass.Direction> resultElement = new ArrayList<>();
+            
+            while (uX > 0 && uX < ROWS && uY > 0 && uY < COLS) {
+                switch(dir) {
+                    case UP:
+                        --uX;
+                        break;
+                    case DOWN:
+                        ++uX;
+                        break;
+                    case RIGHT:
+                        ++uY;
+                        break;
+                    case LEFT:
+                        --uY;
+                        break;
+                }
+                resultElement.add(dir);
+                if (cells[uX][uY] > 0) break;
+            }
+            
+            result.add(resultElement);
+        }
+        
+        return result;
+    }
+    
 }
