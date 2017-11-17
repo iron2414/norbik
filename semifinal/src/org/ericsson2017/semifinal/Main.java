@@ -23,7 +23,7 @@ public class Main {
 	private static class Canvas extends JPanel {
 		private static final long serialVersionUID=0l;
 		
-		private final AtomicReference<ResponseClass.Response.Reader> response
+		private final AtomicReference<ServerResponseParser> response
 				=new AtomicReference<>();
 		
 		@Override
@@ -44,7 +44,7 @@ public class Main {
 			}
 		}
 		
-		public void render(ResponseClass.Response.Reader response) {
+		public void render(ServerResponseParser response) {
 			this.response.set(response);
 			SwingUtilities.invokeLater(this::repaint);
 		}
@@ -106,8 +106,8 @@ public class Main {
             System.out.println("Logged in");
 
             ResponseClass.Response.Reader response=response();
-            print(response);
             simManager = new SimManager(response);
+            print(response, simManager.serverResponseParser.copy());
 
             while ((health = response.getUnits().get(0).getHealth())>0) {
                 simManager.setResponse(response);
@@ -127,11 +127,11 @@ public class Main {
                         System.out.println("***** DIE *****");
                         break;
                     }
-                    print(response);
                     
                     // futtassuk újra a szimulációt, ellenőrizzük az ütközés valószínűségét
                     // és ha szükséges, keressünk menekülő útvonalat!
                     simManager.setResponse(response);
+					print(response, simManager.serverResponseParser.copy());
                     stepList = simManager.checkPath(stepList, i);
                 }
             }
@@ -184,11 +184,12 @@ public class Main {
     }
 	
     private ResponseClass.Response.Reader print(
-                    ResponseClass.Response.Reader response) {
+			ResponseClass.Response.Reader response,
+			ServerResponseParser response2) {
 		if (!frame.isDisplayable()) {
 			throw new RuntimeException("frame closed");
 		}
-        canvas.render(response);
+        canvas.render(response2);
         printStatus(response);
         return response;
     }

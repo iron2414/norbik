@@ -7,7 +7,6 @@ import java.awt.Graphics2D;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import org.ericsson2017.protocol.semifinal.ResponseClass;
 
 public class ResponseRenderer {
 	private static final List<Color> COLORS=Collections.unmodifiableList(
@@ -23,6 +22,7 @@ public class ResponseRenderer {
 	private static final Font FONT=new Font("Monospaced", 0, 12);
 	private static final int PADDING=3;
 	
+	private final CrystalBall ball=new CrystalBall();
 	private int cellSize;
 	private int cellsHeight;
 	private int cellsWidth;
@@ -33,11 +33,11 @@ public class ResponseRenderer {
 	private final int height;
 	private int line;
 	private int lineWidth;
-	private final ResponseClass.Response.Reader response;
+	private final ServerResponseParser response;
 	private final int width;
 
 	private ResponseRenderer(Graphics2D graphics, int height,
-			ResponseClass.Response.Reader response, int width) {
+			ServerResponseParser response, int width) {
 		this.graphics=graphics;
 		this.height=height;
 		this.response=response;
@@ -69,36 +69,36 @@ public class ResponseRenderer {
 		graphics.setColor(Color.LIGHT_GRAY);
 		drawString(
 				"level: %1$,8d  tick: %2$,8d  owns: %3$,8d",
-				response.getInfo().getLevel(),
-				response.getInfo().getTick(),
-				response.getInfo().getOwns());
+				response.infoLevel,
+				response.infoTick,
+				response.infoOwns);
 		drawString(
 				"status: %1$s",
-				response.getStatus());
+				response.status);
 		for (int ee=0; response.getEnemies().size()>ee; ++ee) {
-			ResponseClass.Enemy.Reader enemy=response.getEnemies().get(ee);
+			Enemy enemy=response.enemies.get(ee);
 			drawString(
 					"e %1$,3d  %2$,3dx%3$,3d %4$6sx%5$6s",
 					ee,
-					enemy.getPosition().getX(),
-					enemy.getPosition().getY(),
-					enemy.getDirection().getHorizontal(),
-					enemy.getDirection().getVertical());
+					enemy.coord.x,
+					enemy.coord.y,
+					enemy.dirX,
+					enemy.dirY);
 		}
 		for (int uu=0; response.getUnits().size()>uu; ++uu) {
-			ResponseClass.Unit.Reader unit=response.getUnits().get(uu);
+			Unit unit=response.getUnits().get(uu);
 			drawString(
 					"u %1$,3d  o: %2$,1d  h: %3$,1d  k: %4$,2d  %5$,3d x %6$,3d %7$6s",
 					uu,
-					unit.getOwner(),
-					unit.getHealth(),
-					unit.getKiller(),
-					unit.getPosition().getX(),
-					unit.getPosition().getY(),
-					unit.getDirection());
+					unit.owner,
+					unit.health,
+					unit.killer,
+					unit.coord.x,
+					unit.coord.y,
+					unit.dir);
 		}
-		cellsWidth=response.getCells().get(0).size();
-		cellsHeight=response.getCells().size();
+		cellsWidth=response.cells[0].length;
+		cellsHeight=response.cells.length;
 		cellSize=Math.min((width-1-3*PADDING-lineWidth)/cellsWidth,
 				(height-1-2*PADDING)/cellsHeight);
 		cellsX=width-PADDING-1-cellsWidth*cellSize;
@@ -117,41 +117,42 @@ public class ResponseRenderer {
 					cellsX+cc*cellSize,
 					cellsY+cellsHeight*cellSize);
 		}
+		ball.reset(response, 200);
+		ball.addEnemies(response.enemies);
 		for (int xx=cellsWidth-1; 0<=xx; --xx) {
 			int cx=cellsX+xx*cellSize;
 			for (int yy=cellsHeight-1; 0<=yy; --yy) {
 				int cy=cellsY+yy*cellSize;
-				ResponseClass.Cell.Reader cell
-						=response.getCells().get(yy).get(xx);
-				if (0!=cell.getOwner()) {
-					graphics.setColor(color(cell.getOwner()));
+				int cell=response.cells[yy][xx];
+				if (0!=cell) {
+					graphics.setColor(color(cell));
 					graphics.fillRect(cx+1, cy+1, cellSize-1, cellSize-1);
 				}
 				graphics.setColor(Color.LIGHT_GRAY);
-				switch (cell.getAttack().which()) {
-					case CAN:
-						break;
-					case UNIT:
-						graphics.drawLine(
-								cx+1,
-								cy+1,
-								cx+cellSize-2,
-								cy+cellSize-2);
-						graphics.drawLine(
-								cx+cellSize-2,
-								cy+1,
-								cx+1,
-								cy+cellSize-2);
-						break;
-					default:
-						throw new IllegalArgumentException(
-								cell.getAttack().which().toString());
+				if (0<response.attackUnits[yy][xx]) {
+					graphics.drawLine(
+							cx+1,
+							cy+1,
+							cx+cellSize-2,
+							cy+cellSize-2);
+					graphics.drawLine(
+							cx+cellSize-2,
+							cy+1,
+							cx+1,
+							cy+cellSize-2);
+				}
+				graphics.setColor(Color.MAGENTA);
+				float probability=ball.sumTTXY(0, ball.timeLimit, xx, yy);
+				if (0.0f<probability) {
+					int size=Math.round(probability*(cellSize-1));
+					int offset=(cellSize-1-size)/2;
+					graphics.fillOval(cx+1+offset, cy+1+offset, size, size);
 				}
 			}
 		}
-		for (ResponseClass.Enemy.Reader enemy: response.getEnemies()) {
-			int ex=cellsX+enemy.getPosition().getY()*cellSize;
-			int ey=cellsY+enemy.getPosition().getX()*cellSize;
+		for (Enemy enemy: response.getEnemies()) {
+			int ex=cellsX+enemy.coord.y*cellSize;
+			int ey=cellsY+enemy.coord.x*cellSize;
 			graphics.setColor(Color.LIGHT_GRAY);
 			graphics.drawOval(
 					ex+1,
@@ -159,9 +160,9 @@ public class ResponseRenderer {
 					cellSize-2,
 					cellSize-2);
 		}
-		for (ResponseClass.Unit.Reader unit: response.getUnits()) {
-			int ux=cellsX+unit.getPosition().getY()*cellSize;
-			int uy=cellsY+unit.getPosition().getX()*cellSize;
+		for (Unit unit: response.getUnits()) {
+			int ux=cellsX+unit.coord.y*cellSize;
+			int uy=cellsY+unit.coord.x*cellSize;
 			graphics.setColor(color(unit.getOwner()));
 			graphics.fillOval(
 					ux+1,
@@ -178,7 +179,7 @@ public class ResponseRenderer {
 	}
 	
 	public static void render(Graphics2D graphics, int width, int height,
-			ResponseClass.Response.Reader response) {
+			ServerResponseParser response) {
 		new ResponseRenderer(graphics, height, response, width)
 				.render();
 	}

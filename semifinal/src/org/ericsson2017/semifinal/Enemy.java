@@ -17,6 +17,10 @@ public class Enemy
         this.dirX = dirX;
         this.dirY = dirY;
     }
+	
+	public Enemy copy() {
+		return new Enemy(coord.copy(), dirX, dirY);
+	}
     
     public Coord getCoord() {
         return coord;

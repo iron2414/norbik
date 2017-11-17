@@ -26,6 +26,10 @@ public class Unit
         this.owner = owner;
         this.dir = dir;
     }
+	
+	public Unit copy() {
+		return new Unit(coord.copy(), health, killer, owner, dir);
+	}
 
     public Coord getCoord() {
         return coord;
