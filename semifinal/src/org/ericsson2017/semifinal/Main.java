@@ -117,7 +117,7 @@ public class Main {
                 stepListWithProb = simManager.findPath();
                 
                 List<CommonClass.Direction> stepList = stepListWithProb.first;
-                System.out.println("Try "+stepList.toString()+" steps\nProbability: "+stepListWithProb.second+"\n----------------------\n");
+                System.out.println("Try steps: "+stepList.toString()+"\nProbability: "+stepListWithProb.second+"\n----------------------\n");
 
                 // kezdjük el végigjárni az ajánlott utat
                 for(int i=0; i<stepList.size(); ++i) {

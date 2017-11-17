@@ -110,11 +110,15 @@ public class OptimalPathSelector {
         List<CommonClass.Direction> path = new ArrayList<>();
         
         for(Tuple<Double, List<CommonClass.Direction>> pathList : collProbsList) {
-            min = Math.min(min, pathList.first);
             if (pathList.first < min) {
                 min = pathList.first;
                 path = pathList.second;
             }
+        }
+        
+        System.out.println("Optimal escape path: ");
+        for(CommonClass.Direction d : path) {
+            System.out.print(d+" ");
         }
         
         return path;
