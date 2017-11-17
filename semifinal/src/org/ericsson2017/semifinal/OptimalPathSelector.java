@@ -21,7 +21,7 @@ public class OptimalPathSelector {
      * "Elég nagy" sikerességi ráta -> ha ennél nagyobb egy áthaladás sikerességének
      * valószínűsége, akkor érdemes megpróbálni
      */
-    public static final double SUCCESS_PROBABILITY_HIGH = 70.0;
+    public static final double SUCCESS_PROBABILITY_HIGH = 50.0;
     /**
      * "Elég nagy" területnyereség -> a maximálisan megszerezhető terület ennyi %-a már jó kompromisszum
      */

@@ -61,6 +61,7 @@ public class SimManager {
      * keressen menekülő útvonalat és módosítsa úgy az útvonalat, hogy ezzel elkrüljük (legalább egy időre)
      * az ütközést. 
      * Az eredmény az eddig megtett lépéseket és az ez utáni megcélzott lépéseket is tartalmazza.
+     * A "currentStep" indexet már megléptem.
      * 
      * @param stepList
      * @param currentStep   Ezt a lépést már megtettük
@@ -89,14 +90,15 @@ public class SimManager {
         boolean findEscapePath = false;
         int collisionStep = 0;
         for (int i=0; i<collProbList.size(); ++i) {
-            if (collProbList.get(i) > 50.0) {
+            if (collProbList.get(i) > 50.0 || collProbList.get(i) == 50 && result.size() > i ) {
                 findEscapePath = true;
                 collisionStep = i;
                 break;
             }
         }
         
-        if (!findEscapePath || collisionStep>5) {
+        //TODO azt az 5-st átgondolni az eddigi lépések/hátralévő lépések alapján, valami aránnyal, egyáltalán van-e értelme a második kifejezésnek?
+        if (!findEscapePath || collisionStep>result.size()+1) {
             result.addAll(remainigSteps);
         } else {
             // tuti az ütközés, de menekülni csak akkor kell, ha a menekülőút biztonságosabb

@@ -92,8 +92,8 @@ public class Simulator {
         // vissza tud pattanni?
         nextDX = dX == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
         nextDY = dY == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
-        nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
-        nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+        nextPosY = pY + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+        nextPosX = pX + (nextDY == CommonClass.Direction.UP ? -1 : 1);
         
         if (futureCells[nextPosX][nextPosY] == 0) {
             Coord c = new Coord(nextPosX, nextPosY);
@@ -106,8 +106,8 @@ public class Simulator {
         // tud-e egyik irányban elfordulni átlósan? X irányban visszafordul, Y irányban megy tovább
         nextDX = dX == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
         nextDY = dY;
-        nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
-        nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+        nextPosY = pY + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+        nextPosX = pX + (nextDY == CommonClass.Direction.UP ? -1 : 1);
         
         if (futureCells[nextPosX][nextPosY] == 0) {
             Coord c = new Coord(nextPosX, nextPosY);
@@ -118,8 +118,8 @@ public class Simulator {
         // tud-e egyik irányban elfordulni átlósan? X irányban megy tovább, Y irányban visszafordul
         nextDX = dX;
         nextDY = dY == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
-        nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
-        nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+        nextPosY = pY + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+        nextPosX = pX + (nextDY == CommonClass.Direction.UP ? -1 : 1);
         
         if (futureCells[nextPosX][nextPosY] == 0) {
             Coord c = new Coord(nextPosX, nextPosY);
@@ -132,7 +132,7 @@ public class Simulator {
             // de az irányvektora visszafelé kell hogy mutasson
             nextDX = dX == CommonClass.Direction.RIGHT ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
             nextDY = dY == CommonClass.Direction.UP ? CommonClass.Direction.DOWN : CommonClass.Direction.UP;
-            nextPosX = pX + (nextDX == CommonClass.Direction.RIGHT ? 1 : -1);
+            nextPosX = pX + (nextDY == CommonClass.Direction.UP ? -1 : 1);
             nextPosY = pY;
             
             if (futureCells[nextPosX][nextPosY] == 0) {
@@ -142,7 +142,8 @@ public class Simulator {
             }
             
             nextPosX = pX;
-            nextPosY = pY + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+            nextPosX = pX + (nextDY == CommonClass.Direction.UP ? -1 : 1);
+        
             
             if (futureCells[nextPosX][nextPosY] == 0) {
                 Coord c = new Coord(nextPosX, nextPosY);
@@ -182,8 +183,8 @@ public class Simulator {
             int posX = fe.getCoord().getX();
             int posY = fe.getCoord().getY();
             
-            int nextPosX = posX + (fe.getDirX() == CommonClass.Direction.RIGHT ? 1 : -1);
-            int nextPosY = posY + (fe.getDirY() == CommonClass.Direction.UP ? -1 : 1);
+            int nextPosY = posY + (fe.getDirX() == CommonClass.Direction.RIGHT ? 1 : -1);
+            int nextPosX = posX + (fe.getDirY() == CommonClass.Direction.UP ? -1 : 1);
             
             if (futureCells[nextPosX][nextPosY] > 0) {
                 // pattanni kell
@@ -576,7 +577,8 @@ public class Simulator {
 
             collProb.add(calculateCollisionProbability());
         }
-        
+        //TODO mintha az attackMovements nem mindig lenne jó
+        System.out.println("Attack movements count: "+ attackMovements.get(0).size());
         System.out.println("Collision probabilities:");
         for(double prob : collProb) {
             System.out.print(prob+", ");
