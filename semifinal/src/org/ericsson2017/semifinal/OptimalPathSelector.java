@@ -5,6 +5,7 @@
  */
 package org.ericsson2017.semifinal;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -20,7 +21,7 @@ public class OptimalPathSelector {
      * "Elég nagy" sikerességi ráta -> ha ennél nagyobb egy áthaladás sikerességének
      * valószínűsége, akkor érdemes megpróbálni
      */
-    public static final double SUCCESS_PROBABILITY_HIGH = 90.0;
+    public static final double SUCCESS_PROBABILITY_HIGH = 70.0;
     /**
      * "Elég nagy" területnyereség -> a maximálisan megszerezhető terület ennyi %-a már jó kompromisszum
      */
@@ -105,6 +106,17 @@ public class OptimalPathSelector {
      * @return 
      */
     public List<CommonClass.Direction> findOptimalEscapePath(List<Tuple<Double, List<CommonClass.Direction>>> collProbsList) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        double min = 101.0;
+        List<CommonClass.Direction> path = new ArrayList<>();
+        
+        for(Tuple<Double, List<CommonClass.Direction>> pathList : collProbsList) {
+            min = Math.min(min, pathList.first);
+            if (pathList.first < min) {
+                min = pathList.first;
+                path = pathList.second;
+            }
+        }
+        
+        return path;
     }
 }

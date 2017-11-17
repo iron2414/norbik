@@ -529,6 +529,7 @@ public class Simulator {
     public List<Double> simulatePathInTrip(List<CommonClass.Direction> lastStepList, List<CommonClass.Direction> nextStepList) {
         
         List<Double> collProb = new ArrayList<>(); // az ellenséggel ütközés valószínűsége a szimuláció egyes lépéseiben %
+        attackMovements.clear();
         attackMovements.add(new ArrayList<>());
         futureEnemiesHistory.clear();
 
@@ -537,20 +538,20 @@ public class Simulator {
         int uY = unit.getCoord().getY();
         
         // a lastStepList elemit az attackMovements vektorba kell másolni úgy,
-        // hogy visszafelé kell követni a lépéseket
+        // hogy visszafelé kell követni a lépéseket ellentétes irányban
         for(int i = lastStepList.size()-1; i>=0; --i) {
             switch (lastStepList.get(i)) {
                 case UP:
-                    --uX;
-                    break;
-                case DOWN:
                     ++uX;
                     break;
+                case DOWN:
+                    --uX;
+                    break;
                 case RIGHT:
-                    ++uY;
+                    --uY;
                     break;
                 case LEFT:
-                    --uY;
+                    ++uY;
                     break;
             }
             attackMovements.get(0).add(0, new Coord(uX, uY));   // a lista elejére kerül minden elem
@@ -576,6 +577,12 @@ public class Simulator {
             collProb.add(calculateCollisionProbability());
         }
         
+        System.out.println("Collision probabilities:");
+        for(double prob : collProb) {
+            System.out.print(prob+", ");
+        }
+        System.out.println("");
+        
         return collProb;
     }
 
@@ -594,6 +601,7 @@ public class Simulator {
         //List<Double> collProb = new ArrayList<>(); // az ellenséggel ütközés valószínűsége a szimuláció egyes lépéseiben %
         List<Tuple<Double, List<CommonClass.Direction>>> result = new ArrayList<>();
         double totalCollProb = 0;
+        attackMovements.clear();
         attackMovements.add(new ArrayList<>());
         futureEnemiesHistory.clear();
 
@@ -606,16 +614,16 @@ public class Simulator {
         for(int i = lastStepList.size()-1; i>=0; --i) {
             switch (lastStepList.get(i)) {
                 case UP:
-                    --uX;
-                    break;
-                case DOWN:
                     ++uX;
                     break;
+                case DOWN:
+                    --uX;
+                    break;
                 case RIGHT:
-                    ++uY;
+                    --uY;
                     break;
                 case LEFT:
-                    --uY;
+                    ++uY;
                     break;
             }
             attackMovements.get(0).add(0, new Coord(uX, uY));   // a lista elejére kerül minden elem
@@ -652,6 +660,9 @@ public class Simulator {
             }
             
             result.add(new Tuple<>(totalCollProb, nextStepLists.get(pathStep)));
+            List<List<Coord>> temp = attackMovements.subList(0, lastStepList.size());
+            attackMovements.clear();
+            attackMovements.addAll(temp);
         }
         
         

@@ -63,6 +63,7 @@ public class SimManager {
         // ha már az utolsó lépésnél vagyunk, ne változtassunk
         if (stepList.size() == currentStep-1) {
             result.addAll(stepList);
+            return result;
         }
         
         result.addAll(stepList.subList(0, currentStep));    // az eddigi lépések maradnak, a szimulációhoz kellenek!

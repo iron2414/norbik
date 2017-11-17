@@ -123,7 +123,10 @@ public class Main {
                 for(int i=0; i<stepList.size(); ++i) {
                     move(stepList.get(i));
                     response=response();
-                    if (response.getUnits().get(0).getHealth() < health) break;
+                    if (response.getUnits().get(0).getHealth() < health) {
+                        System.out.println("***** DIE *****");
+                        break;
+                    }
                     print(response);
                     
                     // futtassuk újra a szimulációt, ellenőrizzük az ütközés valószínűségét
