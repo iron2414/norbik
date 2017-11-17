@@ -30,6 +30,8 @@ public class PathFinder {
         System.out.println("PathFinder response changed. Unit pos: "+units.get(0).coord.toString());
     }
     
+    
+    //Megnézi a hogy a unit körül van-e üres mező
     public boolean nearEmptyField() {
         Unit unit = units.get(0);
         
@@ -80,6 +82,7 @@ public class PathFinder {
                 if (y < COLS && cells[x][y+1]==0) break; // a jobb alsó sarokban van egy üres mező
                 if (y > 0 && cells[x][y-1]==0) break;   // a bal alsó sarokban van egy üres mező
             }
+            
             if (x < ROWS && steps < bestSteps) {
                 bestSteps = steps;
                 bestDir = CommonClass.Direction.DOWN;
@@ -139,9 +142,14 @@ public class PathFinder {
         }
         
         // vízszintes/függőleges mozgással nem lett meg az "aréna"?
+        //TODO mivan ha a maradék "aréna" nem téglalap alakú egy menekülő útvonal miatt pl?
         if (bestSteps == Integer.MAX_VALUE) {
             System.out.println("Arena not found with horiz/vert search, trying other method");
             // keresem a befoglaló téglalapot
+            //t = x coord up
+            //b = x coord down
+            //l = y coord left
+            //r = y coord right
             int l=COLS, r=0, t=ROWS, b=0;
             for(int co=0; co<COLS; ++co) {
                 for(int ro=0; ro<ROWS; ++ro) {
