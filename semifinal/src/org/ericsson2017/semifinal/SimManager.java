@@ -55,6 +55,17 @@ public class SimManager {
         }
     }
     
+    /**
+     * Ellenőrizze le, hogy a megadott útvonal hátralévő részét végigjárva, az egyes lépések során
+     * mekkora valószínűséggel fogunk ellenséggel ütközni, és ha ez elég nagy, akkor
+     * keressen menekülő útvonalat és módosítsa úgy az útvonalat, hogy ezzel elkrüljük (legalább egy időre)
+     * az ütközést. 
+     * Az eredmény az eddig megtett lépéseket és az ez utáni megcélzott lépéseket is tartalmazza.
+     * 
+     * @param stepList
+     * @param currentStep   Ezt a lépést már megtettük
+     * @return 
+     */
     public List<CommonClass.Direction> checkPath(List<CommonClass.Direction> stepList, int currentStep) 
     {
         List<CommonClass.Direction> result = new ArrayList<>(stepList.size());
@@ -66,7 +77,8 @@ public class SimManager {
             return result;
         }
         
-        result.addAll(stepList.subList(0, currentStep));    // az eddigi lépések maradnak, a szimulációhoz kellenek!
+        // Felül nyitott, alul zárt intervalumot kell adni a subList-nek!!!
+        result.addAll(stepList.subList(0, currentStep+1));    // az eddigi lépések maradnak, a szimulációhoz kellenek
         remainigSteps.addAll(stepList.subList(currentStep+1, stepList.size())); // a tervezett további lépések
         
         // a hátrelévő lépésekben mekkora az ütközés valószínűsége?
@@ -75,21 +87,24 @@ public class SimManager {
         // ha bármelyik lépésben kétesélyes, hogy ütközni fogok-e, akkor 50% vagy annál kisebb a valószínűség
         // ha 50%-nál nagyobb értéket találok, akkor szinte biztos az ütközés, menekülni kell!
         boolean findEscapePath = false;
-        for (Double collProb : collProbList) {
-            if (collProb > 50.0) {
+        int collisionStep = 0;
+        for (int i=0; i<collProbList.size(); ++i) {
+            if (collProbList.get(i) > 50.0) {
                 findEscapePath = true;
+                collisionStep = i;
                 break;
             }
         }
         
-        if (!findEscapePath) {
+        if (!findEscapePath || collisionStep>5) {
             result.addAll(remainigSteps);
         } else {
-            // menekülni kell, tuti az ütközés
+            // tuti az ütközés, de menekülni csak akkor kell, ha a menekülőút biztonságosabb
+            System.out.println("*** Collision probability too high, find escape route!");
             List<List<CommonClass.Direction>> paths = pathFinder.findEscapeRoutes(stepList.get(currentStep+1));
             List<Tuple<Double, List<CommonClass.Direction>>> collProbsList = simulator.simulatePathsInTrip(result, paths);
             printCollProbsList(collProbsList);
-            return optiPathSel.findOptimalEscapePath(collProbsList);
+            result.addAll(optiPathSel.findOptimalEscapePath(collProbsList));
         }
         return result;
     }

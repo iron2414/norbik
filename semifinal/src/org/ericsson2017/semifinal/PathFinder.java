@@ -141,6 +141,7 @@ public class PathFinder {
         // vízszintes/függőleges mozgással nem lett meg az "aréna"?
         if (bestSteps == Integer.MAX_VALUE) {
             System.out.println("Arena not found with horiz/vert search, trying other method");
+            printCells();
             // keresem a befoglaló téglalapot
             int l=COLS, r=0, t=ROWS, b=0;
             for(int co=0; co<COLS; ++co) {
@@ -419,5 +420,26 @@ public class PathFinder {
         
         return result;
     }
-    
+
+    private void printCells() {
+        for(int x=0; x<ROWS; x++) {
+            for(int y=0; y<COLS; y++) {
+                String cellValue = " ";
+                
+                for(Unit u : units) {
+                    if (u.getCoord().getX() == x && u.getCoord().getY() == y) {
+                        cellValue = "¤";
+                    }
+                }
+                                
+                if (cellValue.equals(" ")) {
+                    cellValue = Integer.toString(cells[x][y]);
+                }
+                
+                System.out.print( cellValue );
+            }
+            
+            System.out.println();
+        }
+    }    
 }
