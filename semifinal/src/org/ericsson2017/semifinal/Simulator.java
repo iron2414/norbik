@@ -660,9 +660,9 @@ public class Simulator {
             }
             
             result.add(new Tuple<>(totalCollProb, nextStepLists.get(pathStep)));
-            List<List<Coord>> temp = attackMovements.subList(0, lastStepList.size());
-            attackMovements.clear();
-            attackMovements.addAll(temp);
+            List<Coord> temp = new ArrayList<>(attackMovements.get(0).subList(0, lastStepList.size()));
+            attackMovements.get(0).clear();
+            attackMovements.get(0).addAll(temp);
         }
         
         

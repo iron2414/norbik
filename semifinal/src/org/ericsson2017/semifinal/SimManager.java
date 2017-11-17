@@ -61,7 +61,7 @@ public class SimManager {
         List<CommonClass.Direction> remainigSteps = new ArrayList<>();
         
         // ha már az utolsó lépésnél vagyunk, ne változtassunk
-        if (stepList.size() == currentStep-1) {
+        if (stepList.size() <= currentStep+1) {
             result.addAll(stepList);
             return result;
         }
