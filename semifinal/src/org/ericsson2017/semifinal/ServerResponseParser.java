@@ -112,8 +112,6 @@ public class ServerResponseParser {
 						attackUnits[sl][i] = c.get(i).getAttack().getUnit();
 						break;
 				}
-                attackCans[sl][i] = c.get(i).getAttack().getCan();
-                attackUnits[sl][i] = c.get(i).getAttack().getUnit();
                 cells[sl][i] = c.get(i).getOwner();
             }
         }

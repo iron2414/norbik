@@ -129,7 +129,7 @@ public class ResponseRenderer {
 					graphics.fillRect(cx+1, cy+1, cellSize-1, cellSize-1);
 				}
 				graphics.setColor(Color.LIGHT_GRAY);
-				if (0<response.attackUnits[yy][xx]) {
+				if (0<=response.attackUnits[yy][xx]) {
 					graphics.drawLine(
 							cx+1,
 							cy+1,
