@@ -105,12 +105,25 @@ public class SimManager {
         if (!findEscapePath || collisionStep > 5) {
             result.addAll(remainigSteps);
         } else {
-            // tuti az ütközés, de menekülni csak akkor kell, ha a menekülőút biztonságosabb
-            System.out.println("*** Collision probability too high, find escape route!");
+            // valahol a jövőben ütközés lesz, de csak akkor kell menekülni,
+            // ha a rövidebbik menekülőút megtétele után még pont nem ütközünk
+            // ehhez szükség van a menekülő utakra
             List<List<CommonClass.Direction>> paths = pathFinder.findEscapeRoutes(stepList.get(currentStep+1));
-            List<Tuple<Double, List<CommonClass.Direction>>> collProbsList = simulator.simulatePathsInTrip(result, paths);
-            printCollProbsList(collProbsList);
-            result.addAll(optiPathSel.findOptimalEscapePath(collProbsList));
+            int shortestEscapeRoute = Integer.MAX_VALUE;
+            for(List<CommonClass.Direction> path : paths) {
+                shortestEscapeRoute = Math.min(shortestEscapeRoute, path.size());
+            }
+            
+            if (collisionStep <= shortestEscapeRoute) {
+                // tuti az ütközés, de menekülni, mert a menekülőút biztonságosabb
+                System.out.println("*** Collision probability too high, find escape route!");
+
+                List<Tuple<Double, List<CommonClass.Direction>>> collProbsList = simulator.simulatePathsInTrip(result, paths);
+                printCollProbsList(collProbsList);
+                result.addAll(optiPathSel.findOptimalEscapePath(collProbsList));
+            } else {
+                result.addAll(remainigSteps);
+            }
         }
         return result;
     }
