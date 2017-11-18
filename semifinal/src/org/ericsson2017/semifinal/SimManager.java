@@ -98,7 +98,7 @@ public class SimManager {
         }
         
         //TODO azt az 5-st átgondolni az eddigi lépések/hátralévő lépések alapján, valami aránnyal, egyáltalán van-e értelme a második kifejezésnek?
-        if (!findEscapePath || collisionStep>result.size()+1) {
+        if (!findEscapePath || collisionStep>currentStep+1) {
             result.addAll(remainigSteps);
         } else {
             // tuti az ütközés, de menekülni csak akkor kell, ha a menekülőút biztonságosabb
