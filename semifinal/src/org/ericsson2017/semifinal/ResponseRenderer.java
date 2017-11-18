@@ -117,7 +117,7 @@ public class ResponseRenderer {
 					cellsX+cc*cellSize,
 					cellsY+cellsHeight*cellSize);
 		}
-		ball.reset(response, 200);
+		ball.reset(response, 100);
 		ball.addEnemies(response.enemies);
 		for (int xx=cellsWidth-1; 0<=xx; --xx) {
 			int cx=cellsX+xx*cellSize;
