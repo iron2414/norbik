@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.swing.JFrame;
@@ -115,7 +116,14 @@ public class Main {
                 // keress egy viszonylag nagy területnyereséggel kecsegtető
                 // viszonylag nagy valószínűséggel bejárható útvonalat!
                 stepListWithProb = simManager.findPath();
-                
+                if (stepListWithProb == null) {
+                    System.out.println("*** CANNOT FIND PATH!!! ***\nUsing DOWN step - what else?");
+                    List<CommonClass.Direction> dirList = new ArrayList<>();
+                    move(CommonClass.Direction.DOWN);   // menj egyet le és utána is majd egyet le
+                    dirList.add(CommonClass.Direction.DOWN);
+                    
+                    stepListWithProb = new Tuple<>(dirList, 100.0);
+                }
                 List<CommonClass.Direction> stepList = stepListWithProb.first;
                 System.out.println("Try steps: "+stepList.toString()+"\nProbability: "+stepListWithProb.second+"\n----------------------\n");
 

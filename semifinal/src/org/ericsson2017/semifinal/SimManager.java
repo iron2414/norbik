@@ -82,7 +82,7 @@ public class SimManager {
         result.addAll(stepList.subList(0, currentStep+1));    // az eddigi lépések maradnak, a szimulációhoz kellenek
         remainigSteps.addAll(stepList.subList(currentStep+1, stepList.size())); // a tervezett további lépések
         
-        // a hátrelévő lépésekben mekkora az ütközés valószínűsége?
+        // a _hátralévő_ lépésekben mekkora az ütközés valószínűsége?
         List<Double> collProbList = simulator.simulatePathInTrip(result, remainigSteps); 
         
         // ha bármelyik lépésben kétesélyes, hogy ütközni fogok-e, akkor 50% vagy annál kisebb a valószínűség
@@ -90,7 +90,8 @@ public class SimManager {
         boolean findEscapePath = false;
         int collisionStep = 0;
         for (int i=0; i<collProbList.size(); ++i) {
-            if (collProbList.get(i) > 50.0 || collProbList.get(i) == 50 && result.size() > i ) {
+            //if (collProbList.get(i) > 50.0 || collProbList.get(i) == 50 && result.size() > i ) {
+            if (collProbList.get(i) > 50.0) {
                 findEscapePath = true;
                 collisionStep = i;
                 break;
@@ -98,7 +99,10 @@ public class SimManager {
         }
         
         //TODO azt az 5-st átgondolni az eddigi lépések/hátralévő lépések alapján, valami aránnyal, egyáltalán van-e értelme a második kifejezésnek?
-        if (!findEscapePath || collisionStep>currentStep+1) {
+        //if (!findEscapePath || collisionStep>currentStep+1) {
+        
+        // nem lesz ütközés, vagy több mint 5 lépés múlva esedékes a dolog
+        if (!findEscapePath || collisionStep > 5) {
             result.addAll(remainigSteps);
         } else {
             // tuti az ütközés, de menekülni csak akkor kell, ha a menekülőút biztonságosabb

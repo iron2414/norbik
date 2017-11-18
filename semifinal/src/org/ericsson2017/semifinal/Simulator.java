@@ -268,8 +268,9 @@ public class Simulator {
             
             attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
             
+            CommonClass.Direction stepDir = CommonClass.Direction.DOWN;
             for(int step=0; step<paths.get(sim).first.size(); ++step) {
-                CommonClass.Direction stepDir = paths.get(sim).first.get(step);
+                stepDir = paths.get(sim).first.get(step);
                 moveUnit(futureUnit.get(0), stepDir);
                 attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
 
@@ -289,9 +290,30 @@ public class Simulator {
                 totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
             }
             
+            // a futureEnemies elemeinek hány %-a van a vonal azonos oldalán?
+            int sameSideCount = 0;
+            switch (stepDir) {
+                case UP:
+                case DOWN:
+                    int y = futureUnit.get(0).coord.y;
+                    for(FutureEnemy fe : futureEnemies) {
+                        sameSideCount += fe.coord.y > y ? 1 : 0;
+                    }
+                    break;
+                case RIGHT:
+                case LEFT:
+                    int x = futureUnit.get(0).coord.x;
+                    for(FutureEnemy fe : futureEnemies) {
+                        sameSideCount += fe.coord.x > x ? 1 : 0;
+                    }
+                    break;
+            }
+            double sameSideProb = 100.0 * sameSideCount/futureEnemies.size();
+            if (sameSideProb < 50.0) sameSideProb = 100.0-sameSideProb;
+            
             //System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
             
-            SimResult simResult = new SimResult(paths.get(sim).first.size(), 100.0-totalCollProb, paths.get(sim).second, paths.get(sim).first );
+            SimResult simResult = new SimResult(paths.get(sim).first.size(), 100.0-totalCollProb, sameSideProb, paths.get(sim).second, paths.get(sim).first );
             simulationResult.add(simResult);
         }
         
@@ -557,6 +579,7 @@ public class Simulator {
             }
             attackMovements.get(0).add(0, new Coord(uX, uY));   // a lista elejére kerül minden elem
         }
+        System.out.println("Attack movements previous steps count: "+ attackMovements.get(0).size());
         
         System.out.println("\n*** SIMULATION IN TRIP START ***");
         
@@ -565,8 +588,9 @@ public class Simulator {
         // a támadó aktuális helyzete is kell a támadás vektorba
         attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
 
+        CommonClass.Direction stepDir;
         for(int step=0; step<nextStepList.size(); ++step) {
-            CommonClass.Direction stepDir = nextStepList.get(step);
+            stepDir = nextStepList.get(step);
             moveUnit(futureUnit.get(0), stepDir);
             attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
 
@@ -602,7 +626,7 @@ public class Simulator {
     public List<Tuple<Double, List<CommonClass.Direction>>> simulatePathsInTrip(List<CommonClass.Direction> lastStepList, List<List<CommonClass.Direction>> nextStepLists) {
         //List<Double> collProb = new ArrayList<>(); // az ellenséggel ütközés valószínűsége a szimuláció egyes lépéseiben %
         List<Tuple<Double, List<CommonClass.Direction>>> result = new ArrayList<>();
-        double totalCollProb = 0;
+        
         attackMovements.clear();
         attackMovements.add(new ArrayList<>());
         futureEnemiesHistory.clear();
@@ -633,6 +657,7 @@ public class Simulator {
         
         System.out.println("\n*** MULTI SIMULATION IN TRIP START ***");
         
+        double totalCollProb;
         for(int pathStep = 0; pathStep < nextStepLists.size(); ++pathStep) {
             totalCollProb = 0;
             initSim(false);  // minden alaphelyzetbe (támadás vektor NEM, térkép, ellenségek, támadók)

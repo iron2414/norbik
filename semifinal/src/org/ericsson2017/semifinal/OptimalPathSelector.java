@@ -37,6 +37,10 @@ public class OptimalPathSelector {
      */
     public Tuple<List<CommonClass.Direction>, Double> findOptimalPath(List<SimResult> simulationResult) {
         
+        if (simulationResult.isEmpty()) return null;
+        if (1 == simulationResult.size()) 
+            return new Tuple<>(simulationResult.get(0).getPath(), simulationResult.get(0).getSuccessProbability());
+        
         Collections.sort(simulationResult);
         printSimResult(simulationResult);
         
