@@ -113,8 +113,8 @@ public class CrystalBall {
 			if (lbf) {
 				if (rbf) {
 					float pp=0.5f*probability;
-					addEnemy(lbx, lby, bdx, bdy, probability, time+1);
-					addEnemy(rbx, rby, bdx, bdy, probability, time+1);
+					addEnemy(lbx, lby, bdx, bdy, pp, time+1);
+					addEnemy(rbx, rby, bdx, bdy, pp, time+1);
 				}
 				else {
 					addEnemy(lbx, lby, bdx, bdy, probability, time+1);
