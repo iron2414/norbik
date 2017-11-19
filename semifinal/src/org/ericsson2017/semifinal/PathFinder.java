@@ -5,6 +5,7 @@ import java.util.List;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 import static org.ericsson2017.semifinal.Simulator.COLS;
 import static org.ericsson2017.semifinal.Simulator.ROWS;
+import static org.ericsson2017.semifinal.Simulator.MIN_AREA;
 
 /**
  *
@@ -65,124 +66,197 @@ public class PathFinder {
     public List<CommonClass.Direction> findShortestPathToEmptyField() {
         List<CommonClass.Direction> result = new ArrayList<>();
         Unit unit = units.get(0);
+        int area = 0;
+        int x = 0;
+        int y = 0;
         
         assert cells[unit.coord.x][unit.coord.y] > 0;   // nem szabad, hogy üres mezőn álljunk
         
         CommonClass.Direction bestDir = CommonClass.Direction.RIGHT;
         int bestSteps = Integer.MAX_VALUE;
-
-        if (unit.coord.x < ROWS) {
+        int[][] cellsCopy = new int[ROWS][COLS];
+        for(int i=0;i<ROWS;i++)
+        {
+            for(int j=0; j<COLS; j++)
+            {
+                cellsCopy[i][j] = cells[i][j];
+            }
+        }
+        while(area < MIN_AREA)
+        { 
+            bestSteps = Integer.MAX_VALUE;
+            if (unit.coord.x < ROWS) {
             // próbáljuk lefele
-            int steps = 0;
-            int x = unit.coord.x;
-            int y = unit.coord.y;
-            while (++x < ROWS) {
-                ++steps;
-                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                if (y < COLS && cells[x][y+1]==0) break; // a jobb alsó sarokban van egy üres mező
-                if (y > 0 && cells[x][y-1]==0) break;   // a bal alsó sarokban van egy üres mező
-            }
-            
-            if (x < ROWS && steps < bestSteps) {
-                bestSteps = steps;
-                bestDir = CommonClass.Direction.DOWN;
-            }
-        }
+                int steps = 0;
+                int tmpx = unit.coord.x;
+                int tmpy = unit.coord.y;
+                while (++tmpx < ROWS) {
+                    ++steps;
+                    if (cellsCopy[tmpx][tmpy]==0) break;   // pont nekimentem egy üres mezőnek
+                    if (tmpy < COLS && cellsCopy[tmpx][tmpy+1]==0) {
+                        tmpy = tmpy+1;
+                        break;
+                    } // a jobb alsó sarokban van egy üres mező
+                    if (tmpy > 0 && cellsCopy[tmpx][tmpy-1]==0){
+                        tmpy = tmpy-1;
+                        break;
+                    }   // a bal alsó sarokban van egy üres mező
+                    
+                }
 
-        if (unit.coord.x > 0) {
-            // próbáljuk felfele
-            int steps = 0;
-            int x = unit.coord.x;
-            int y = unit.coord.y;
-            while (--x > 0) {
-                ++steps;
-                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                if (y < COLS && cells[x][y+1]==0) break; // a jobb felső sarokban van egy üres mező
-                if (y > 0 && cells[x][y-1]==0) break;   // a bal felső sarokban van egy üres mező
-            }
-            if (x > 0 && steps < bestSteps) {
-                bestSteps = steps;
-                bestDir = CommonClass.Direction.UP;
-            }
-        }
+                if (tmpx < ROWS && steps < bestSteps) {
+                    bestSteps = steps;
+                    x=tmpx;
+                    y=tmpy;
+                }
+          }
 
-        if (unit.coord.y < COLS) {
-            // próbáljuk jobbra
-            int steps = 0;
-            int x = unit.coord.x;
-            int y = unit.coord.y;
-            
-            while (++y < COLS) {
-                ++steps;
-                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                if (x < ROWS && cells[x+1][y]==0) break; // a jobb alsó sarokban van egy üres mező
-                if (x > 0 && cells[x-1][y]==0) break;   // a jobb felső sarokban van egy üres mező
-            }
-            if (y < COLS && steps < bestSteps) {
-                bestSteps = steps;
-                bestDir = CommonClass.Direction.RIGHT;
-            }
-        }
-
-        if (unit.coord.y > 0) {
-            // próbáljuk balra
-            int steps = 0;
-            int x = unit.coord.x;
-            int y = unit.coord.y;
-            while (--y > 0) {
-                ++steps;
-                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
-                if (x < ROWS && cells[x+1][y]==0) break; // a bal alsó sarokban van egy üres mező
-                if (x > 0 && cells[x-1][y]==0) break;   // a bal felső sarokban van egy üres mező
-            }
-            if (y > 0 && steps < bestSteps) {
-                bestSteps = steps;
-                bestDir = CommonClass.Direction.LEFT;
-            }
-        }
-        
-        // vízszintes/függőleges mozgással nem lett meg az "aréna"?
-        //TODO mivan ha a maradék "aréna" nem téglalap alakú egy menekülő útvonal miatt pl?
-        if (bestSteps == Integer.MAX_VALUE) {
-            System.out.println("Arena not found with horiz/vert search, trying other method");
-            printCells();
-            // keresem a befoglaló téglalapot
-            //t = x coord up
-            //b = x coord down
-            //l = y coord left
-            //r = y coord right
-            int l=COLS, r=0, t=ROWS, b=0;
-            for(int co=0; co<COLS; ++co) {
-                for(int ro=0; ro<ROWS; ++ro) {
-                    if (cells[ro][co]==0) {
-                        t = Math.min(ro, t);
-                        b = Math.max(ro, b);
-                        l = Math.min(co, l);
-                        r = Math.max(co, r);
-                    }
+            if (unit.coord.x > 0) {
+                // próbáljuk felfele
+                int steps = 0;
+                int tmpx = unit.coord.x;
+                int tmpy = unit.coord.y;
+                while (--tmpx > 0) {
+                    ++steps;
+                    if (cellsCopy[tmpx][tmpy]==0) break;   // pont nekimentem egy üres mezőnek
+                    if (tmpy < COLS && cellsCopy[tmpx][tmpy+1]==0) {
+                        tmpy = tmpy+1;
+                        break;
+                    } // a jobb felső sarokban van egy üres mező
+                    if (tmpy > 0 && cellsCopy[tmpx][tmpy-1]==0){
+                        tmpy = tmpy-1;
+                        break;
+                    }   // a bal felső sarokban van egy üres mező
+                }
+                if (tmpx > 0 && steps < bestSteps) {
+                    bestSteps = steps;
+                    x=tmpx;
+                    y=tmpy;
+                    bestDir = CommonClass.Direction.UP;
                 }
             }
-            System.out.println("Arena coords: ("+t+":"+l+") - ("+b+":"+r+")");
-            // melyik sarka van legközelebb?
-            Coord nearestEdge = findNearestEdge(t, l, b, r, 0);
-            System.out.println("Nearest edge: "+nearestEdge);
-            System.out.println("Create steps: "+
-                    (nearestEdge.getX() - unit.coord.getX() - (int)Math.signum(nearestEdge.getX() - unit.coord.getX())) + ":" +
-                    (nearestEdge.getY() - unit.coord.getY() - (int)Math.signum(nearestEdge.getY() - unit.coord.getY()))
-                    );
-            return createPathByXYSteps(
-                    nearestEdge.getX() - unit.coord.getX() - (int)Math.signum(nearestEdge.getX() - unit.coord.getX()), 
-                    nearestEdge.getY() - unit.coord.getY() - (int)Math.signum(nearestEdge.getY() - unit.coord.getY()), 
-                    true
-                    );
+
+            if (unit.coord.y < COLS) {
+                // próbáljuk jobbra
+                int steps = 0;
+                int tmpx = unit.coord.x;
+                int tmpy = unit.coord.y;
+                boolean found = false;
+
+                while (++tmpy < COLS && !found) {
+                    ++steps;
+                    if (cellsCopy[tmpx][tmpy]==0) break;   // pont nekimentem egy üres mezőnek
+                    if (tmpx < ROWS && cellsCopy[tmpx+1][tmpy]==0) {
+                        tmpx= tmpx+1;
+                        break;
+                    } // a jobb alsó sarokban van egy üres mező
+                    if (tmpx > 0 && cellsCopy[tmpx-1][tmpy]==0) {
+                        tmpx= tmpx-1;break;
+                    }   // a jobb felső sarokban van egy üres mező
+                }
+                if (tmpy < COLS && steps < bestSteps) {
+                    x=tmpx;
+                    y=tmpy;
+                    bestDir = CommonClass.Direction.RIGHT;
+                    bestSteps = steps;
+                    found = true;
+                }
+            }
+
+            if (unit.coord.y > 0) {
+                // próbáljuk balra
+                int steps = 0;
+                int tmpx = unit.coord.x;
+                int tmpy = unit.coord.y;
+                while (--tmpy > 0) {
+                    ++steps;
+                    if (cellsCopy[tmpx][tmpy]==0) break;   // pont nekimentem egy üres mezőnek
+                    if (tmpx < ROWS && cellsCopy[tmpx+1][tmpy]==0) {
+                        tmpx = tmpx+1;
+                        break;
+                    } // a bal alsó sarokban van egy üres mező
+                    if (tmpx > 0 && cellsCopy[tmpx-1][tmpy]==0) {
+                        tmpx=tmpx-1;
+                        break;
+                    }   // a bal felső sarokban van egy üres mező
+                }
+                if (tmpy > 0 && steps < bestSteps) {
+                    bestSteps = steps;
+                    x=tmpx;
+                    y=tmpy;
+                    bestDir = CommonClass.Direction.LEFT;
+                }
+            }
+            
+             // vízszintes/függőleges mozgással nem lett meg az "aréna"?
+             //Körkörösen megkeresem a legelső üresmezőt.
+             //TODO tesztelni
+            if (bestSteps == Integer.MAX_VALUE) {
+                System.out.println("Arena not found with horiz/vert search, trying other method");
+                //printCells();
+                
+                x = unit.coord.x;
+                y = unit.coord.y;
+                boolean found = false;
+                for(int i = 1; i<ROWS && !found;i++)
+                {
+                    int j = -i;
+                    //Lent és fent
+                    while(j<=i && !found)
+                    {
+                        //Fent
+                        if((x-i)>0 && (y+j)>0 && cellsCopy[x-i][y+j] == 0)
+                        {
+                            x = x-i;
+                            y = y+j;
+                            found = true;
+                            break;
+                        }
+                        
+                        //Lent
+                        if((x+i)>0 && (y+j)>0 && cellsCopy[x+i][y+j] == 0)
+                        {
+                            x = x+i;
+                            y = y+j;
+                            found = true;
+                            break;
+                        }
+                        
+                        //Balra
+                        if((x+j)>0 && (y-i)>0 && cellsCopy[x+j][y-i] == 0)
+                        {
+                            x = x+j;
+                            y = y+i;
+                            found = true;
+                            break;
+                        }
+                        
+                        //Jobbra
+                        if((x+j)>0 && (y+i)>0 && cellsCopy[x+j][y+i] == 0)
+                        {
+                            x = x+j;
+                            y = y+i;
+                            found = true;
+                            break;
+                        }
+                        j++;
+                    }
+                }
+                System.out.println("Átló:(" + x + " " + y + " )");
+            }
+            area = calculateArea(cellsCopy,x,y);
+            System.out.println("area:" + area + "(" + x + " " + y + " )");
+            if(area < MIN_AREA)
+            {
+                colorArea(cellsCopy,x,y, 1);
+            }
         }
         
-        // eggyel kevesebbet kell az adott irányba lépni, mert nem kell "belemenni" a üres mezőbe
-        // hanem előtte meg kell állni
-        for(int i=0; i<bestSteps-1; ++i) {
-            result.add(bestDir);
-        }
-        System.out.println("Found path to arena in "+(bestSteps-1)+" steps in direction "+bestDir);
+        result = calculateRoute(unit,x,y);
+       
+       //Az utolsó elemet kivesszük, mert a következő lépésben a simulator azt várja, hogy az üres mező mellett álljunk, és ne rajta.
+       CommonClass.Direction lastItem = result.get(result.size() - 1);
+       result.remove(lastItem);
 
         return result;
     }
@@ -228,26 +302,18 @@ public class PathFinder {
             // meddig tart vízszintesen/függőlegesen?
             int dirX=0, dirY=0, pX=0, pY=0, pXorig, pYorig;
             if (cells[x+1][y+1]==0) {   // jobbra lefele kezdődik
-                dirX = 1; //TODO törölni
-                dirY = 1; //TODO törölni
                 possibleXDirections[possibleDirections] = 1;
                 possibleYDirections[possibleDirections] = 1;
                 possibleDirections++;
             } else if (cells[x+1][y-1]==0) {    // balra lefele kezdődik
-                dirX = 1; //TODO törölni
-                dirY = -1; //TODO törölni
                 possibleXDirections[possibleDirections] = 1;
                 possibleYDirections[possibleDirections] = -1;
                 possibleDirections++;
-            } else if (cells[x-1][y+1]==0) {    // jobbra felfele kezdődik
-                dirX = -1; //TODO törölni
-                dirY = 1; //TODO törölni
+            } else if (cells[x-1][y+1]==0) {    // jobbra felfele kezdődiki
                 possibleXDirections[possibleDirections] = -1;
                 possibleYDirections[possibleDirections] = 1;
                 possibleDirections++;
             } else if (cells[x-1][y-1]==0) {    // balra felfele kezdődik
-                dirX = -1; //TODO törölni
-                dirY = -1; //TODO törölni
                 possibleXDirections[possibleDirections] = -1;
                 possibleYDirections[possibleDirections] = -1;
                 possibleDirections++;
@@ -481,4 +547,135 @@ public class PathFinder {
             System.out.println();
         }
     }    
+
+    //Kiszámolja a téglalap területét, amibe az x,y is beletartozik
+    private int calculateArea(int[][] cellsCopy, int x, int y) {
+        int area = 0;
+        int tmpx = x;
+        int tmpy = y;
+        //Lefelé összegzem a területet
+        while(cellsCopy[tmpx][tmpy] == 0 && tmpx<ROWS)
+        {
+        
+            //Jobbra
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy<COLS)
+            {
+                System.out.print("("+tmpx+","+tmpy+")");
+                area++;
+                tmpy++;
+            }
+
+            //Balra
+            tmpy = y-1;
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy>0)
+            {
+                System.out.print("("+tmpx+","+tmpy+")");
+                area++;
+                tmpy--;
+            }
+            tmpy = y;
+            tmpx++;
+        }
+        System.out.println("Terulet:"+ area);
+        
+        tmpx = x-1;
+        tmpy = y;
+        
+        //Felfelé összegzem a területet
+        while(cellsCopy[tmpx][tmpy] == 0 && tmpx<0)
+        {
+        
+            //Jobbra
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy<COLS)
+            {
+                area++;
+                tmpy++;
+            }
+
+            //Balra
+            tmpy = y-1;
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy>0)
+            {
+                area++;
+                tmpy--;
+            }
+            tmpy = y;
+            tmpx--;
+        }
+        
+        return area;
+    }
+
+    private void colorArea(int[][] cellsCopy, int x, int y, int color) {
+        int tmpx = x;
+        int tmpy = y;
+        //Lefelé összegzem a területet
+        while(cellsCopy[tmpx][tmpy] == 0 && tmpx<ROWS)
+        {
+        
+            //Jobbra
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy<COLS)
+            {
+                cellsCopy[tmpx][tmpy] = color;
+                tmpy++;
+            }
+
+            //Balra
+            tmpy = y-1;
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy>0)
+            {
+                cellsCopy[tmpx][tmpy] = color;
+                tmpy--;
+            }
+            tmpx++;
+            tmpy = y;
+        }
+        
+        tmpx = x-1;
+        
+        //Felfelé összegzem a területet
+        while(cellsCopy[tmpx][tmpy] == 0 && tmpx<0)
+        {
+        
+            //Jobbra
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy<COLS)
+            {
+                cellsCopy[tmpx][tmpy] = color;
+                tmpy++;
+            }
+
+            //Balra
+            tmpy = y-1;
+            while(cellsCopy[tmpx][tmpy] == 0 && tmpy>0)
+            {
+                cellsCopy[tmpx][tmpy] = color;
+                tmpy--;
+            }
+            tmpx--;
+            tmpy = y;
+        }
+    }
+
+    private List<CommonClass.Direction> calculateRoute(Unit unit, int finishX, int finishY) {
+       
+        List<CommonClass.Direction> result = new ArrayList<>();
+        int x = unit.coord.x;
+        int y = unit.coord.y;
+        int dirXnumber = y>finishY ? -1 : 1;
+        int dirYnumber = x>finishX ? -1 : 1;
+        CommonClass.Direction dirX = y>finishY ? CommonClass.Direction.LEFT : CommonClass.Direction.RIGHT;
+        CommonClass.Direction dirY = x>finishX ? CommonClass.Direction.UP : CommonClass.Direction.DOWN;
+        while(x!=finishX)
+        {
+            result.add(dirY);
+            x+= dirYnumber;
+        }
+        
+        while(y!= finishY)
+        {
+            result.add(dirX);
+            y+= dirXnumber;
+        }
+        return result;
+    }
 }

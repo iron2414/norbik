@@ -55,6 +55,7 @@ public class Simulator {
     
     public static final int ROWS = 80;
     public static final int COLS = 100;
+    public static final int MIN_AREA = 400; //A pálya 5%-a
     
     public static int simStep = 0;
     public List<List<FutureEnemy>> futureEnemiesHistory;    // cache
