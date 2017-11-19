@@ -48,7 +48,7 @@ public class SimManager {
         if (pathFinder.nearEmptyField()) {
             List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
             List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
-            printSimResult(simResult);
+            //printSimResult(simResult);
             return optiPathSel.findOptimalPath(simResult);
         } else {
             return new Tuple<>(pathFinder.findShortestPathToEmptyField(), 100.0);
@@ -91,7 +91,7 @@ public class SimManager {
         int collisionStep = 0;
         for (int i=0; i<collProbList.size(); ++i) {
             //if (collProbList.get(i) > 50.0 || collProbList.get(i) == 50 && result.size() > i ) {
-            if (collProbList.get(i) > 50.0) {
+            if (collProbList.get(i) >= 50.0) {
                 findEscapePath = true;
                 collisionStep = i;
                 break;
@@ -101,8 +101,8 @@ public class SimManager {
         //TODO azt az 5-st átgondolni az eddigi lépések/hátralévő lépések alapján, valami aránnyal, egyáltalán van-e értelme a második kifejezésnek?
         //if (!findEscapePath || collisionStep>currentStep+1) {
         
-        // nem lesz ütközés, vagy több mint 5 lépés múlva esedékes a dolog
-        if (!findEscapePath || collisionStep > 5) {
+        // nem lesz ütközés
+        if (!findEscapePath) {
             result.addAll(remainigSteps);
         } else {
             // valahol a jövőben ütközés lesz, de csak akkor kell menekülni,
@@ -114,6 +114,7 @@ public class SimManager {
                 shortestEscapeRoute = Math.min(shortestEscapeRoute, path.size());
             }
             
+            System.out.println(String.format("%1$d steps to collision, but the shortest escape route needs %2$d steps.", collisionStep, shortestEscapeRoute));
             if (collisionStep <= shortestEscapeRoute) {
                 // tuti az ütközés, de menekülni, mert a menekülőút biztonságosabb
                 System.out.println("*** Collision probability too high, find escape route!");
@@ -129,8 +130,8 @@ public class SimManager {
     }
     
     private void printSimResult(List<SimResult> simulationResult) {
-        System.out.println("*** Simulation result ***");
-        System.out.println("Steps | Area | SuccessRate | Path");
+        System.out.println("*** Simulation result before ordering ***");
+        System.out.println("Steps | Area | SuccessRate | EnemiesInSameSide% | Path");
         
         for(SimResult sr : simulationResult) {
             String p = "";
@@ -150,7 +151,7 @@ public class SimManager {
                         break;
                 }
             }
-            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + p);
+            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + sr.getAllEnemiesInSameSideProbability() + "% | " + p);
         }
     }
 

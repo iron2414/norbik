@@ -79,7 +79,7 @@ public class OptimalPathSelector {
     
     private void printSimResult(List<SimResult> simulationResult) {
         System.out.println("*** Simulation result ***");
-        System.out.println("Steps | Area | SuccessRate | Path");
+        System.out.println("Steps | Area | SuccessRate | EnemiesInSameSide% | Path");
         
         for(SimResult sr : simulationResult) {
             String p = "";
@@ -99,7 +99,7 @@ public class OptimalPathSelector {
                         break;
                 }
             }
-            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + p);
+            System.out.println(sr.getSteps() + " | " + sr.getRewardArea() + " | " + sr.getSuccessProbability()+"% | " + sr.getAllEnemiesInSameSideProbability() + "% | " + p);
         }
     }
 
@@ -110,12 +110,13 @@ public class OptimalPathSelector {
      * @return 
      */
     public List<CommonClass.Direction> findOptimalEscapePath(List<Tuple<Double, List<CommonClass.Direction>>> collProbsList) {
-        double min = 101.0;
+        int min = Integer.MAX_VALUE;
         List<CommonClass.Direction> path = new ArrayList<>();
         
         for(Tuple<Double, List<CommonClass.Direction>> pathList : collProbsList) {
-            if (pathList.first < min) {
-                min = pathList.first;
+            
+            if (pathList.second.size() < min) {
+                min = pathList.second.size();
                 path = pathList.second;
             }
         }

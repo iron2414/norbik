@@ -259,7 +259,7 @@ public class Simulator {
         attackMovements.add(new ArrayList<>());
         futureEnemiesHistory.clear();
 
-        System.out.println("\n*** SIMULATION START ***");
+        System.out.println("\n*** SIMULATION START ***  ("+paths.size()+" paths)");
         
         for(int sim=0; sim<paths.size(); ++sim) {
             //System.out.println("Sim "+paths.get(sim).first.size()+" steps -- "+paths.get(sim).first.toString());
@@ -319,137 +319,6 @@ public class Simulator {
         
         return simulationResult;
     }
-    
-    /*
-    public List<CommonClass.Direction> findBestSteps() 
-    {
-        List<CommonClass.Direction> result = new ArrayList<>();
-        
-        double totalCollProb; // az ellenséggel ütközés teljes valószínűsége %
-
-        attackMovements.add(new ArrayList<>());
-        simulationResult.clear();
-        
-        // előbb jobbra megyünk valamennyit, aztán lefele végig
-        // 3-nél kevesebbet nem érdemes jobbra menni
-        for(int x=3; x<COLS-3; x++) {
-            
-            // *** SZIMULÁCIÓ INDUL ***
-            initSim();  // minden alaphelyzetbe (támadás vektor, térkép, ellenségek, támadók)
-            totalCollProb = 0.0;
-            
-            // x lépés jobbra
-            int step;
-            attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
-            for(step=0; step<x; step++) {
-                futureUnit.get(0).coord.x++;
-                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
-
-                System.out.println("\nStep: " + step);
-                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos(step);
-                printFutureEnemies();
-            }
-
-            // ROWS-3 lefelé
-            for(; step<x+ROWS-2; step++) {
-                futureUnit.get(0).coord.y++;
-                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
-                
-                System.out.println("\nStep: " + step);
-                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos(step);
-                printFutureEnemies();
-                double collProb = calculateCollisionProbability();
-                
-                if (collProb > 0) {
-                    System.out.println("COLLISION " + collProb + "%");
-                }
-                
-                totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
-            }
-            
-            System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
-            
-            List<CommonClass.Direction> path =new ArrayList<>();
-            for(int i=0; i<attackMovements.get(0).size()-1; i++) {
-                int dX = attackMovements.get(0).get(i+1).x - attackMovements.get(0).get(i).x;
-                int dY = attackMovements.get(0).get(i+1).y - attackMovements.get(0).get(i).y;
-                CommonClass.Direction dir = (dX == 0 ? (dY > 0 ? CommonClass.Direction.DOWN : CommonClass.Direction.UP) : (dX > 0 ? CommonClass.Direction.RIGHT : CommonClass.Direction.LEFT) );
-                path.add(dir);
-            }
-            SimResult simResult = new SimResult(step, 100.0-totalCollProb, Math.min((x-1) * (ROWS-4), (COLS-2-x) * (ROWS-4)), path );
-            simulationResult.add(simResult);
-        }
-        
-        
-        // előbb lefele megyünk valamennyit, aztán jobbra
-        // 2-nél kevesebbet nem érdemes lefele menni
-        for(int y=2; y<ROWS-4; y++) {
-            
-            // *** SZIMULÁCIÓ INDUL ***
-            initSim();  // minden alaphelyzetbe (támadás vektor, térkép, ellenségek, támadók)
-            totalCollProb = 0.0;
-            
-            // y lépés lefele
-            int step;
-            attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
-            for(step=0; step<y; step++) {
-                futureUnit.get(0).coord.y++;
-                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
-
-                System.out.println("\nStep: " + step);
-                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos(step);
-                printFutureEnemies();
-            }
-
-            // COLS-2 jobbra
-            for(; step<y+COLS-2; step++) {
-                futureUnit.get(0).coord.x++;
-                attackMovements.get(0).add(new Coord(futureUnit.get(0).coord.getX(), futureUnit.get(0).coord.getY()));
-                
-                System.out.println("\nStep: " + step);
-                System.out.println("Unit: (" + futureUnit.get(0).coord.getX() + ":" + futureUnit.get(0).coord.getY() + ")");
-                calculateEnemiesNextPos(step);
-                printFutureEnemies();
-                double collProb = calculateCollisionProbability();
-                
-                if (collProb > 0) {
-                    System.out.println("COLLISION " + collProb + "%");
-                }
-                
-                totalCollProb = 100.0 * (totalCollProb/100.0 + ((1.0-(totalCollProb/100.0)) * (collProb/100.0)));
-            }
-            
-            System.out.println("\n*** Total Collision Propability: " + totalCollProb + "%\n\n");
-            
-            List<CommonClass.Direction> path =new ArrayList<>();
-            for(int i=0; i<attackMovements.get(0).size()-1; i++) {
-                int dX = attackMovements.get(0).get(i+1).x - attackMovements.get(0).get(i).x;
-                int dY = attackMovements.get(0).get(i+1).y - attackMovements.get(0).get(i).y;
-                CommonClass.Direction dir = (dX == 0 ? (dY > 0 ? CommonClass.Direction.DOWN : CommonClass.Direction.UP) : (dX > 0 ? CommonClass.Direction.RIGHT : CommonClass.Direction.LEFT) );
-                path.add(dir);
-            }
-            SimResult simResult = new SimResult(step, 100.0-totalCollProb, Math.min(y*(COLS-4), (ROWS-3-y) * (COLS-4)), path );
-            simulationResult.add(simResult);
-        }
-        
-        Collections.sort(simulationResult);
-        printSimResult();
-        
-        // a 10 legjobb lehetőség közül azt választjuk, amelyiknek a valószínűsége elég nagy
-        for(int i=0; i<10; ++i) {
-            if (simulationResult.get(i).getSuccessProbability() >= SUCCESS_PROBABILITY_HIGH) {
-                return simulationResult.get(i).getPath();
-            }
-        }
-        
-        // az első 10 között nincs elég nagy valószínűséggel megléphető
-        // akkor legyel az első, mert annak a legnagyobb a valószínűsége és a területe
-        return simulationResult.get(0).getPath();
-    }
-    */
     
     private void initSim() {
         initSim(true);
@@ -520,8 +389,6 @@ public class Simulator {
         }
         */
     }
-    
-    
 
     private void moveUnit(Unit unit, CommonClass.Direction dir) {
         switch (dir) {
