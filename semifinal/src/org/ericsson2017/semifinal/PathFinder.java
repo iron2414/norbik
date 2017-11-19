@@ -199,8 +199,18 @@ public class PathFinder {
         List<Tuple<List<CommonClass.Direction>, Integer>> result = new ArrayList<>();
         Unit unit = units.get(0);
         
+        //TODO a menekülő útvonalak miatt nagy a valószínűsége, hogy nem sarkon vagyunk, ezért a balra/jobbra/le/fel irányokkal kéne kezdeni, és utána ez.
+        //Ezért ez a megoldás nem teljesen optimális. A jelenlegi else ágba sose fogunk belefutni.
         int x = unit.coord.x;
         int y = unit.coord.y;
+        int possibleDirections = 0;
+        int possibleXDirections [] = new int[4];
+        int possibleYDirections [] = new int [4];
+        for(int i =0;i<4;i++)
+        {
+            possibleXDirections[i] = 0;
+            possibleYDirections[i] = 0;
+        }
         int maxArea;
         
         // tételezzük fel, hogy nem a szélén vagyunk a pályának, elvileg ilyen nem fordulhat elő
@@ -218,65 +228,86 @@ public class PathFinder {
             // meddig tart vízszintesen/függőlegesen?
             int dirX=0, dirY=0, pX=0, pY=0, pXorig, pYorig;
             if (cells[x+1][y+1]==0) {   // jobbra lefele kezdődik
-                dirX = 1;
-                dirY = 1;
+                dirX = 1; //TODO törölni
+                dirY = 1; //TODO törölni
+                possibleXDirections[possibleDirections] = 1;
+                possibleYDirections[possibleDirections] = 1;
+                possibleDirections++;
             } else if (cells[x+1][y-1]==0) {    // balra lefele kezdődik
-                dirX = 1;
-                dirY = -1;
+                dirX = 1; //TODO törölni
+                dirY = -1; //TODO törölni
+                possibleXDirections[possibleDirections] = 1;
+                possibleYDirections[possibleDirections] = -1;
+                possibleDirections++;
             } else if (cells[x-1][y+1]==0) {    // jobbra felfele kezdődik
-                dirX = -1;
-                dirY = 1;
+                dirX = -1; //TODO törölni
+                dirY = 1; //TODO törölni
+                possibleXDirections[possibleDirections] = -1;
+                possibleYDirections[possibleDirections] = 1;
+                possibleDirections++;
             } else if (cells[x-1][y-1]==0) {    // balra felfele kezdődik
-                dirX = -1;
-                dirY = -1;
+                dirX = -1; //TODO törölni
+                dirY = -1; //TODO törölni
+                possibleXDirections[possibleDirections] = -1;
+                possibleYDirections[possibleDirections] = -1;
+                possibleDirections++;
             }
-            pX = x + dirX;
-            pY = y + dirY;
+            for(int i = 0; i<4;i++)
+            {
+                //Csak annyit nézünk meg amerre tudunk is menni.
+                if(possibleXDirections[i] == 0)
+                {
+                    break;
+                }
+                pX = x + possibleXDirections[i];
+                pY = y + possibleYDirections[i];
 
-            assert cells[pX][pY] == 0;      // az "aréna" egyik sarkában vagyunk
-            
-            // Ide majd vissza kell térni
-            pXorig = pX;
-            pYorig = pY;
-            
-            // szaladjunk végig függőlegesen, amíg nem találunk valamit
-            while (pX > 0 && pX < ROWS) {
-                pX += dirX;
-                if (cells[pX+dirX][pY] > 0) break;
-            }
-            
-            // szaladjunk végig vízszintesen
-            while (pY > 0 && pY < COLS) {
-                pY += dirY;
-                if (cells[pX][pY+dirY] > 0) break;
-            }            
-            // most pX és pY a túlsó szélét mutatja az üres területnek
+                assert cells[pX][pY] == 0;      // az "aréna" egyik sarkában vagyunk
 
-            // az üres területnek max. a felét lehet egy menetben elfoglalni
-            maxArea = Math.abs((pX-pXorig) * (pY-pYorig));
+                // Ide majd vissza kell térni
+                pXorig = pX;
+                pYorig = pY;
 
-            // path-ok generálása
-            // függőlegesen x sor, aztán vízszintesen végig
-            for(int sor = 2; sor < Math.abs(pXorig-pX)-2; ++sor ) {
-                int area = (sor-1) * Math.abs(pY-pYorig);
-                if (area > maxArea/2) {
-                    area = maxArea-area;
+                // szaladjunk végig függőlegesen, amíg nem találunk valamit
+                while (pX > 0 && pX < ROWS) {
+                    pX += possibleXDirections[i];
+                    if (cells[pX+possibleXDirections[i]][pY] > 0) break;
                 }
 
-                Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps((int)Math.signum(pX-pXorig)*sor, pY-pYorig+2*dirY, true), area);
-                result.add(t);
-            }
+                // szaladjunk végig vízszintesen
+                while (pY > 0 && pY < COLS) {
+                    pY += possibleYDirections[i];
+                    if (cells[pX][pY+possibleYDirections[i]] > 0) break;
+                }            
+                // most pX és pY a túlsó szélét mutatja az üres területnek
 
-            // vízszintesen x oszlop, aztán függőlegesen végig
-            for(int oszlop = 2; oszlop < Math.abs(pYorig-pY)-2; ++oszlop ) {
-                int area = (oszlop-1) * Math.abs(pX-pXorig);
-                if (area > maxArea/2) {
-                    area = maxArea-area;
+                // az üres területnek max. a felét lehet egy menetben elfoglalni
+                maxArea = Math.abs((pX-pXorig) * (pY-pYorig));
+
+                // path-ok generálása
+                // függőlegesen x sor, aztán vízszintesen végig
+                for(int sor = 2; sor < Math.abs(pXorig-pX)-2; ++sor ) {
+                    int area = (sor-1) * Math.abs(pY-pYorig);
+                    if (area > maxArea/2) {
+                        area = maxArea-area;
+                    }
+
+                    Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps((int)Math.signum(pX-pXorig)*sor, pY-pYorig+2*possibleYDirections[i], true), area);
+                    result.add(t);
                 }
-//System.out.println("Generate "+ (Math.signum(pY-pYorig)*oszlop) + ":" + (pX-pXorig));
-                Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps(pX-pXorig+2*dirX, (int)Math.signum(pY-pYorig)*oszlop, false), area);
-                result.add(t);
+
+                // vízszintesen x oszlop, aztán függőlegesen végig
+                for(int oszlop = 2; oszlop < Math.abs(pYorig-pY)-2; ++oszlop ) {
+                    int area = (oszlop-1) * Math.abs(pX-pXorig);
+                    if (area > maxArea/2) {
+                        area = maxArea-area;
+                    }
+    //System.out.println("Generate "+ (Math.signum(pY-pYorig)*oszlop) + ":" + (pX-pXorig));
+                    Tuple<List<CommonClass.Direction>, Integer> t = new Tuple<>(createPathByXYSteps(pX-pXorig+2*possibleXDirections[i], (int)Math.signum(pY-pYorig)*oszlop, false), area);
+                    result.add(t);
+                }  
             }
+            
 
         } else {
             // pont nekimentem a pálya oldalának
