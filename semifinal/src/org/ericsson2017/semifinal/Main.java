@@ -52,7 +52,8 @@ public class Main {
 	}
 	
     public static final String HASH="r6mgylzcdd7vtrq5ewpw1zoopj04lgqrwor";
-    public static final String HOST="ecovpn.dyndns.org";
+    //public static final String HOST="ecovpn.dyndns.org";
+    public static final String HOST="epb2017.dyndns.org";
     public static final int PORT=11224;
     public static final String TEAM="norbik";
 

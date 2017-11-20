@@ -180,46 +180,46 @@ public class Simulator {
         
         List<FutureEnemy> newFutureEnemies = new ArrayList<>();
         
-        for(FutureEnemy fe : futureEnemies) {
-            int posX = fe.getCoord().getX();
-            int posY = fe.getCoord().getY();
-            
-            int nextPosY = posY + (fe.getDirX() == CommonClass.Direction.RIGHT ? 1 : -1);
-            int nextPosX = posX + (fe.getDirY() == CommonClass.Direction.UP ? -1 : 1);
-            
-            if (futureCells[nextPosX][nextPosY] > 0) {
-                // pattanni kell
-                // a bouncedEnemies listában benne lesz az összes pattanás az új valószínűségekkel
-                List<FutureEnemy> bouncedEnemies = bounceEnemy(posX, posY, fe.getDirX(), fe.getDirY(), fe.getProbability());
-                
-                assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
-                
-                // az aktuális ellenség irányát és helyzetét frissítjük a lista első elemével
-                fe.coord = new Coord(bouncedEnemies.get(0).coord.getX(), bouncedEnemies.get(0).coord.getY());
-                fe.dirX = bouncedEnemies.get(0).getDirX();
-                fe.dirY = bouncedEnemies.get(0).getDirY();
-                fe.probability = bouncedEnemies.get(0).getProbability();
-                
-                // ha van a listában más is, akkor abból új ellenségeket hozunk létre
-                if (bouncedEnemies.size() > 1) {
-                    for(int i=1; i<bouncedEnemies.size(); i++) {
-                        FutureEnemy f = new FutureEnemy(
-                                new Coord(bouncedEnemies.get(i).coord.getX(), bouncedEnemies.get(i).coord.getY()), 
-                                bouncedEnemies.get(i).dirX,
-                                bouncedEnemies.get(i).dirY,
-                                bouncedEnemies.get(i).getProbability()
-                        );
-                        newFutureEnemies.add(f);
-                    }
-                }
-            } else {
-                // az adott irányban szabad a pálya, megyünk tovább
-                fe.getCoord().x = nextPosX;
-                fe.getCoord().y = nextPosY;
-            }
-        }
-        
         if (futureEnemies.size() < 200) {
+            for(FutureEnemy fe : futureEnemies) {        
+                int posX = fe.getCoord().getX();
+                int posY = fe.getCoord().getY();
+
+                int nextPosY = posY + (fe.getDirX() == CommonClass.Direction.RIGHT ? 1 : -1);
+                int nextPosX = posX + (fe.getDirY() == CommonClass.Direction.UP ? -1 : 1);
+
+                if (futureCells[nextPosX][nextPosY] > 0) {
+                    // pattanni kell
+                    // a bouncedEnemies listában benne lesz az összes pattanás az új valószínűségekkel
+                    List<FutureEnemy> bouncedEnemies = bounceEnemy(posX, posY, fe.getDirX(), fe.getDirY(), fe.getProbability());
+
+                    assert bouncedEnemies.size() > 0; // "Enemy cannot bounce"
+
+                    // az aktuális ellenség irányát és helyzetét frissítjük a lista első elemével
+                    fe.coord = new Coord(bouncedEnemies.get(0).coord.getX(), bouncedEnemies.get(0).coord.getY());
+                    fe.dirX = bouncedEnemies.get(0).getDirX();
+                    fe.dirY = bouncedEnemies.get(0).getDirY();
+                    fe.probability = bouncedEnemies.get(0).getProbability();
+
+                    // ha van a listában más is, akkor abból új ellenségeket hozunk létre
+                    if (bouncedEnemies.size() > 1) {
+                        for(int i=1; i<bouncedEnemies.size(); i++) {
+                            FutureEnemy f = new FutureEnemy(
+                                    new Coord(bouncedEnemies.get(i).coord.getX(), bouncedEnemies.get(i).coord.getY()), 
+                                    bouncedEnemies.get(i).dirX,
+                                    bouncedEnemies.get(i).dirY,
+                                    bouncedEnemies.get(i).getProbability()
+                            );
+                            newFutureEnemies.add(f);
+                        }
+                    }
+                } else {
+                    // az adott irányban szabad a pálya, megyünk tovább
+                    fe.getCoord().x = nextPosX;
+                    fe.getCoord().y = nextPosY;
+                }
+            }        
+        
             //System.out.println("New enemy traces: " + newFutureEnemies.size());
             futureEnemies.addAll(newFutureEnemies);
         }
@@ -454,7 +454,7 @@ public class Simulator {
         }
         System.out.println("Attack movements previous steps count: "+ attackMovements.get(0).size());
         
-        System.out.println("\n*** SIMULATION IN TRIP START ***");
+        System.out.println("\n*** SIMULATION IN TRIP START ***  ("+nextStepList.size()+" steps)");
         
         initSim(false);  // minden alaphelyzetbe (támadás vektor NEM, térkép, ellenségek, támadók)
 

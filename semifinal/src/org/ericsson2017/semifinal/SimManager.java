@@ -98,9 +98,6 @@ public class SimManager {
             }
         }
         
-        //TODO azt az 5-st átgondolni, egyenlőre maradjon.
-        //if (!findEscapePath || collisionStep>currentStep+1) {
-        
         // nem lesz ütközés
         if (!findEscapePath) {
             result.addAll(remainigSteps);
