@@ -219,14 +219,16 @@ public class Simulator {
             }
         }
         
-        //System.out.println("New enemy traces: " + newFutureEnemies.size());
-        futureEnemies.addAll(newFutureEnemies);
+        if (futureEnemies.size() < 200) {
+            //System.out.println("New enemy traces: " + newFutureEnemies.size());
+            futureEnemies.addAll(newFutureEnemies);
+        }
         
         //List<FutureEnemy> futureEnemiesClone = futureEnemies.stream().collect(Collectors.toList());
         List<FutureEnemy> futureEnemiesClone = new ArrayList<>(futureEnemies.size());
         futureEnemies.stream().map((fe) -> new FutureEnemy(fe)).forEach((futureEnemyClone) -> {
             futureEnemiesClone.add(futureEnemyClone);
-        });
+        });        
         futureEnemiesHistory.add(futureEnemiesClone);
     }
 
