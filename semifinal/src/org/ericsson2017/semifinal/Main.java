@@ -79,7 +79,8 @@ public class Main {
         CommandClass.Command.Commands.Login.Builder login=request.initCommands().initLogin();
         login.setHash(HASH);
         login.setTeam(TEAM);
-        Serialize.write(channel, messageBuilder);
+        org.capnproto.SerializePacked.writeToUnbuffered(channel, messageBuilder);
+        //Serialize.write(channel, messageBuilder);
         System.out.println("sent: login");
     }
     
@@ -92,7 +93,8 @@ public class Main {
 		command.get(0).setUnit(0);
 		command.get(0).setDirection(dir);
 
-		Serialize.write(channel, messageBuilder);
+                org.capnproto.SerializePacked.writeToUnbuffered(channel, messageBuilder);
+		//Serialize.write(channel, messageBuilder);
 		System.out.println("sent: move(" + dir.name() + ")");
     }
 
@@ -204,6 +206,7 @@ public class Main {
     }
 	
     private ResponseClass.Response.Reader response() throws Throwable {
-		return Serialize.read(channel).getRoot(ResponseClass.Response.factory);
+        return org.capnproto.SerializePacked.readFromUnbuffered(channel).getRoot(ResponseClass.Response.factory);
+		//return Serialize.read(channel).getRoot(ResponseClass.Response.factory);
     }
 }
