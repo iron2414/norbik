@@ -7,7 +7,6 @@ package org.ericsson2017.semifinal;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 
@@ -21,11 +20,11 @@ public class OptimalPathSelector {
      * "Elég nagy" sikerességi ráta -> ha ennél nagyobb egy áthaladás sikerességének
      * valószínűsége, akkor érdemes megpróbálni
      */
-    public static final double SUCCESS_PROBABILITY_HIGH = 50.0;
+    public static final double SUCCESS_PROBABILITY_HIGH = 45.0;
     /**
      * "Elég nagy" területnyereség -> a maximálisan megszerezhető terület ennyi %-a már jó kompromisszum
      */
-    public static final double REWARD_AREA_BIG_ENOUGH = 35.0;
+    public static final double REWARD_AREA_BIG_ENOUGH = 20.0;
     
     /**
      * Optimális áthaladási útvonalat keres a szimuláció eredménye alapján

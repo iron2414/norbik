@@ -36,25 +36,25 @@ public class PathFinder {
     public boolean nearEmptyField() {
         Unit unit = units.get(0);
         
-        if (unit.coord.x<ROWS && cells[unit.coord.x+1][unit.coord.y]==0) {
+        if (unit.coord.x<ROWS-1 && cells[unit.coord.x+1][unit.coord.y]==0) {
             return true;
         }
         if (unit.coord.x>0 && cells[unit.coord.x-1][unit.coord.y]==0) {
             return true;
         }
-        if (unit.coord.y<COLS && cells[unit.coord.x][unit.coord.y+1]==0) {
+        if (unit.coord.y<COLS-1 && cells[unit.coord.x][unit.coord.y+1]==0) {
             return true;
         }
         if (unit.coord.y>0 && cells[unit.coord.x][unit.coord.y-1]==0) {
             return true;
         }
-        if (unit.coord.x<ROWS && unit.coord.y<COLS && cells[unit.coord.x+1][unit.coord.y+1]==0) {
+        if (unit.coord.x<ROWS-1 && unit.coord.y<COLS-1 && cells[unit.coord.x+1][unit.coord.y+1]==0) {
             return true;
         }
-        if (unit.coord.x<ROWS && unit.coord.y>0 && cells[unit.coord.x+1][unit.coord.y-1]==0) {
+        if (unit.coord.x<ROWS-1 && unit.coord.y>0 && cells[unit.coord.x+1][unit.coord.y-1]==0) {
             return true;
         }
-        if (unit.coord.x>0 && unit.coord.y<COLS && cells[unit.coord.x-1][unit.coord.y+1]==0) {
+        if (unit.coord.x>0 && unit.coord.y<COLS-1 && cells[unit.coord.x-1][unit.coord.y+1]==0) {
             return true;
         }
         if (unit.coord.x>0 && unit.coord.y>0 && cells[unit.coord.x-1][unit.coord.y-1]==0) {
@@ -146,7 +146,7 @@ public class PathFinder {
                 while (++tmpy < COLS && !found) {
                     ++steps;
                     if (cellsCopy[tmpx][tmpy]==0) break;   // pont nekimentem egy üres mezőnek
-                    if (tmpx < ROWS && cellsCopy[tmpx+1][tmpy]==0) {
+                    if (tmpx < ROWS-1 && cellsCopy[tmpx+1][tmpy]==0) {
                         tmpx= tmpx+1;
                         break;
                     } // a jobb alsó sarokban van egy üres mező
@@ -171,7 +171,7 @@ public class PathFinder {
                 while (--tmpy > 0) {
                     ++steps;
                     if (cellsCopy[tmpx][tmpy]==0) break;   // pont nekimentem egy üres mezőnek
-                    if (tmpx < ROWS && cellsCopy[tmpx+1][tmpy]==0) {
+                    if (tmpx < ROWS-1 && cellsCopy[tmpx+1][tmpy]==0) {
                         tmpx = tmpx+1;
                         break;
                     } // a bal alsó sarokban van egy üres mező
@@ -205,7 +205,7 @@ public class PathFinder {
                     while(j<=i && !found)
                     {
                         //Fent
-                        if((x-i)>0 && (y+j)>0 && cellsCopy[x-i][y+j] == 0)
+                        if((x-i)>0 && (x-i)<(ROWS-1) && (y+j)>0 && (y+j)<(COLS-1) && cellsCopy[x-i][y+j] == 0)
                         {
                             x = x-i;
                             y = y+j;
@@ -214,7 +214,7 @@ public class PathFinder {
                         }
                         
                         //Lent
-                        if((x+i)>0 && (y+j)>0 && cellsCopy[x+i][y+j] == 0)
+                        if((x+i)<(ROWS-1) && (y+j)<(COLS-1) && (y+j)>0 && cellsCopy[x+i][y+j] == 0)
                         {
                             x = x+i;
                             y = y+j;
@@ -223,7 +223,7 @@ public class PathFinder {
                         }
                         
                         //Balra
-                        if((x+j)>0 && (y-i)>0 && cellsCopy[x+j][y-i] == 0)
+                        if((x+j)>0 && (x+j)<(ROWS-1) && (y-i)>0 && (y-i)<(COLS-1) && cellsCopy[x+j][y-i] == 0)
                         {
                             x = x+j;
                             y = y+i;
@@ -232,7 +232,7 @@ public class PathFinder {
                         }
                         
                         //Jobbra
-                        if((x+j)>0 && (y+i)>0 && cellsCopy[x+j][y+i] == 0)
+                        if((x+j)<(ROWS-1) && (x+j)>0 && (y+i)<(COLS-1) && cellsCopy[x+j][y+i] == 0)
                         {
                             x = x+j;
                             y = y+i;
