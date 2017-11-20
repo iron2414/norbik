@@ -386,11 +386,14 @@ public class Simulator {
     }
     
     private void printFutureEnemies() {
+        
         /*
+        System.out.println(futureEnemies.size() + " future enemy positions | possibilities");
         for(FutureEnemy fe : futureEnemies) {
             System.out.println("FutureEnemy: " + fe.getCoord() + " " + fe.getDirX() + " " + fe.getDirY() + " - " + fe.getProbability() + "%");
         }
         */
+        
     }
 
     private void moveUnit(Unit unit, CommonClass.Direction dir) {

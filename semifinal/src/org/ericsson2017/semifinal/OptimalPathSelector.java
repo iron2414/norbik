@@ -110,14 +110,23 @@ public class OptimalPathSelector {
      * @return 
      */
     public List<CommonClass.Direction> findOptimalEscapePath(List<Tuple<Double, List<CommonClass.Direction>>> collProbsList) {
-        int min = Integer.MAX_VALUE;
+        int minSize = Integer.MAX_VALUE;
+        double minProb = Double.MAX_VALUE;
         List<CommonClass.Direction> path = new ArrayList<>();
         
-        for(Tuple<Double, List<CommonClass.Direction>> pathList : collProbsList) {
-            
-            if (pathList.second.size() < min) {
-                min = pathList.second.size();
-                path = pathList.second;
+        for(Tuple<Double, List<CommonClass.Direction>> pathList : collProbsList) {    
+            if (pathList.first < minProb) {
+                minProb = pathList.first;
+                //path = pathList.second;
+            }
+        }
+        
+        for(Tuple<Double, List<CommonClass.Direction>> pathList : collProbsList) {    
+            if (pathList.first == minProb) {
+                if (pathList.second.size() < minSize) {
+                    minSize = pathList.second.size();
+                    path = pathList.second;
+                }
             }
         }
         
