@@ -102,7 +102,7 @@ public class SimManager {
         //if (!findEscapePath || collisionStep>currentStep+1) {
         
         // nem lesz ütközés
-        if (!findEscapePath || collisionStep > 5) {
+        if (!findEscapePath) {
             result.addAll(remainigSteps);
         } else {
             // valahol a jövőben ütközés lesz, de csak akkor kell menekülni,
