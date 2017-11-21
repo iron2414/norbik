@@ -63,7 +63,7 @@ public class PathFinder {
         return false;
     }
 
-    public List<CommonClass.Direction> findShortestPathToEmptyField1() {
+    public List<CommonClass.Direction> findShortestPathToEmptyField() {
         List<CommonClass.Direction> result = new ArrayList<>();
         Unit unit = units.get(0);
         int area = 0;
@@ -110,7 +110,7 @@ public class PathFinder {
                     y=tmpy;
                 }
           }
-
+            
             if (unit.coord.x > 0) {
                 // próbáljuk felfele
                 int steps = 0;
@@ -194,7 +194,9 @@ public class PathFinder {
             if (bestSteps == Integer.MAX_VALUE) {
                 System.out.println("Arena not found with horiz/vert search, trying other method");
                 //printCells();
-                
+                //System.out.println("------------------------------");
+                //printCells(cellsCopy);
+                                
                 x = unit.coord.x;
                 y = unit.coord.y;
                 boolean found = false;
@@ -261,7 +263,7 @@ public class PathFinder {
         return result;
     }
     
-    public List<CommonClass.Direction> findShortestPathToEmptyField() {
+    public List<CommonClass.Direction> findShortestPathToEmptyField1() {
         List<CommonClass.Direction> result = new ArrayList<>();
         Unit unit = units.get(0);
         
@@ -665,7 +667,32 @@ public class PathFinder {
             
             System.out.println();
         }
-    }    
+    }
+    
+        private void printCells(int[][] cells) {
+        for(int x=0; x<ROWS; x++) {
+            for(int y=0; y<COLS; y++) {
+                String cellValue = " ";
+                
+                for(Unit u : units) {
+                    if (u.getCoord().getX() == x && u.getCoord().getY() == y) {
+                        cellValue = "¤";
+                    }
+                }
+                                
+                if (cellValue.equals(" ")) {
+                    cellValue = Integer.toString(cells[x][y]);
+                }
+                
+                System.out.print( cellValue );
+            }
+            
+            System.out.println();
+        }
+        
+    }
+
+    
 
     //Kiszámolja a téglalap területét, amibe az x,y is beletartozik
     private int calculateArea(int[][] cellsCopy, int x, int y) {
@@ -679,7 +706,7 @@ public class PathFinder {
             //Jobbra
             while(cellsCopy[tmpx][tmpy] == 0 && tmpy<COLS)
             {
-                System.out.print("("+tmpx+","+tmpy+")");
+                //System.out.print("("+tmpx+","+tmpy+")");
                 area++;
                 tmpy++;
             }
@@ -688,20 +715,20 @@ public class PathFinder {
             tmpy = y-1;
             while(cellsCopy[tmpx][tmpy] == 0 && tmpy>0)
             {
-                System.out.print("("+tmpx+","+tmpy+")");
+                //System.out.print("("+tmpx+","+tmpy+")");
                 area++;
                 tmpy--;
             }
             tmpy = y;
             tmpx++;
         }
-        System.out.println("Terulet:"+ area);
+        //System.out.println("Terulet:"+ area);
         
         tmpx = x-1;
         tmpy = y;
         
         //Felfelé összegzem a területet
-        while(cellsCopy[tmpx][tmpy] == 0 && tmpx<0)
+        while(cellsCopy[tmpx][tmpy] == 0 && tmpx>0)
         {
         
             //Jobbra
@@ -753,7 +780,7 @@ public class PathFinder {
         tmpx = x-1;
         
         //Felfelé összegzem a területet
-        while(cellsCopy[tmpx][tmpy] == 0 && tmpx<0)
+        while(cellsCopy[tmpx][tmpy] == 0 && tmpx>0)
         {
         
             //Jobbra
