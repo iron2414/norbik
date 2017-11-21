@@ -61,66 +61,34 @@ public class Main {
 	}
     
     private class KeyboardListener implements KeyListener {
-        public volatile int dx;
-        public volatile int dy;
-        private int kd;
-        private int kl;
-        private int kr;
-        private int ku;
-        public String tmp = "right";
+		private volatile CommonClass.Direction direction
+				=CommonClass.Direction.RIGHT;
         
         @Override
         public void keyTyped(KeyEvent event) {
-            System.out.println("typed "+event);
         }
         
         @Override
         public void keyPressed(KeyEvent event) {
             switch (event.getKeyCode()) {
                 case KeyEvent.VK_DOWN:
-                    kd=1;
-                    dy=kd-ku;
-                    tmp = "down";
+					direction=CommonClass.Direction.DOWN;
                     break;
                 case KeyEvent.VK_LEFT:
-                    kl=1;
-                    dx=kr-kl;
-                    tmp = "left";
+					direction=CommonClass.Direction.LEFT;
                     break;
                 case KeyEvent.VK_RIGHT:
-                    kr=1;
-                    dx=kr-kl;
-                    tmp = "right";
+					direction=CommonClass.Direction.RIGHT;
                     break;
                 case KeyEvent.VK_UP:
-                    ku=1;
-                    dy=kd-ku;
-                    tmp = "up";
+					direction=CommonClass.Direction.UP;
                     break;
             }
         }
         
         @Override
         public void keyReleased(KeyEvent event) {
-            switch (event.getKeyCode()) {
-                case KeyEvent.VK_DOWN:
-                    kd=0;
-                    dy=kd-ku;
-                    break;
-                case KeyEvent.VK_LEFT:
-                    kl=0;
-                    dx=kr-kl;
-                    break;
-                case KeyEvent.VK_RIGHT:
-                    kr=0;
-                    dx=kr-kl;
-                    break;
-                case KeyEvent.VK_UP:
-                    ku=0;
-                    dy=kd-ku;
-                    break;
-            }
-        }
+		}
     }
     
     private class Prerender implements Runnable {
@@ -293,7 +261,7 @@ public class Main {
                 List<String> kbDirList = new ArrayList<>();
                 Path file;
                 
-                CommonClass.Direction keyboardDirection = CommonClass.Direction.RIGHT;
+                CommonClass.Direction keyboardDirection = keyboardListener.direction;
                 int keyboardHealth = response.getUnits().get(0).getHealth();
                 int keyboardLevel = response.getInfo().getLevel();
                 
@@ -324,21 +292,7 @@ public class Main {
                     Thread.sleep(150);
                     simManager.setResponse(response);
                     print(response, simManager.serverResponseParser.copy());
-                    switch(keyboardListener.tmp)
-                    {
-                        case "down":
-                            keyboardDirection = CommonClass.Direction.DOWN;
-                        break;
-                        case "up":
-                            keyboardDirection = CommonClass.Direction.UP;
-                        break;
-                        case "left":
-                            keyboardDirection = CommonClass.Direction.LEFT;
-                        break;
-                        case "right":
-                            keyboardDirection = CommonClass.Direction.RIGHT;
-                        break;
-                    }
+					keyboardDirection=keyboardListener.direction;
                     int newLevel = response.getInfo().getLevel();
                     if (keyboardLevel != newLevel) {
                         file = Paths.get("xonix_"+keyboardLevel+".kbd");
