@@ -5,6 +5,8 @@ import java.awt.Container;
 import java.awt.Frame;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -53,6 +55,64 @@ public class Main {
 			SwingUtilities.invokeLater(this::repaint);
 		}
 	}
+    
+    private class KeyboardListener implements KeyListener {
+        public volatile int dx;
+        public volatile int dy;
+        private int kd;
+        private int kl;
+        private int kr;
+        private int ku;
+        
+        @Override
+        public void keyTyped(KeyEvent event) {
+            System.out.println("typed "+event);
+        }
+        
+        @Override
+        public void keyPressed(KeyEvent event) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.VK_DOWN:
+                    kd=1;
+                    dy=kd-ku;
+                    break;
+                case KeyEvent.VK_LEFT:
+                    kl=1;
+                    dx=kr-kl;
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    kr=1;
+                    dx=kr-kl;
+                    break;
+                case KeyEvent.VK_UP:
+                    ku=1;
+                    dy=kd-ku;
+                    break;
+            }
+        }
+        
+        @Override
+        public void keyReleased(KeyEvent event) {
+            switch (event.getKeyCode()) {
+                case KeyEvent.VK_DOWN:
+                    kd=0;
+                    dy=kd-ku;
+                    break;
+                case KeyEvent.VK_LEFT:
+                    kl=0;
+                    dx=kr-kl;
+                    break;
+                case KeyEvent.VK_RIGHT:
+                    kr=0;
+                    dx=kr-kl;
+                    break;
+                case KeyEvent.VK_UP:
+                    ku=0;
+                    dy=kd-ku;
+                    break;
+            }
+        }
+    }
     
     private class Prerender implements Runnable {
 		private final Object lock=new Object();
@@ -108,6 +168,7 @@ public class Main {
     private final Canvas canvas;
     private final SocketChannel channel;
 	private final JFrame frame;
+    private final KeyboardListener keyboardListener=new KeyboardListener();
 	private final Prerender prerender=new Prerender();
 
     public Main(SocketChannel channel) {
@@ -115,7 +176,9 @@ public class Main {
 		frame=new JFrame("Semifinal");
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		frame.getContentPane().setLayout(new BorderLayout());
+        frame.addKeyListener(keyboardListener);
 		canvas=new Canvas();
+        canvas.addKeyListener(keyboardListener);
 		frame.getContentPane().add(canvas, BorderLayout.CENTER);
 		frame.setBounds(0, 0, 800, 600);
 		frame.setExtendedState(Frame.MAXIMIZED_BOTH);
