@@ -112,13 +112,12 @@ public class Main {
             ResponseClass.Response.Reader response=response();
             simManager = new SimManager(response);
             print(response, simManager.serverResponseParser.copy());
+            boolean winArea = true;
 
             while ((health = response.getUnits().get(0).getHealth())>0) {
-                simManager.setResponse(response);
-                
                 // keress egy viszonylag nagy területnyereséggel kecsegtető
                 // viszonylag nagy valószínűséggel bejárható útvonalat!
-                stepListWithProb = simManager.findPath();
+                stepListWithProb = simManager.findPath(winArea);
                 if (stepListWithProb == null) {
                     System.out.println("*** CANNOT FIND PATH!!! ***\nUsing DOWN step - what else?");
                     List<CommonClass.Direction> dirList = new ArrayList<>();
@@ -144,6 +143,16 @@ public class Main {
                     simManager.setResponse(response);
 					print(response, simManager.serverResponseParser.copy());
                     stepList = simManager.checkPath(stepList, i);
+                }
+                
+                simManager.setResponse(response);
+                
+                // elvileg most bejártuk a tervezett vagy a menekülő  útvonalat
+                // ellenőrizzük, hogy kaptunk-e területet
+                if (stepList.size()>0) {
+                    winArea = simManager.hasWinArea(stepList.get(stepList.size()-1));
+                } else {
+                    winArea = false;
                 }
             }
         } finally {

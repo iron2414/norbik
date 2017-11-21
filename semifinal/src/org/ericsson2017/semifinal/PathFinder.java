@@ -63,6 +63,7 @@ public class PathFinder {
         return false;
     }
 
+    /*
     public List<CommonClass.Direction> findShortestPathToEmptyField() {
         List<CommonClass.Direction> result = new ArrayList<>();
         Unit unit = units.get(0);
@@ -260,6 +261,126 @@ public class PathFinder {
 
         return result;
     }
+    */
+    
+    public List<CommonClass.Direction> findShortestPathToEmptyField() {
+        List<CommonClass.Direction> result = new ArrayList<>();
+        Unit unit = units.get(0);
+        
+        assert cells[unit.coord.x][unit.coord.y] > 0;   // nem szabad, hogy üres mezőn álljunk
+        
+        CommonClass.Direction bestDir = CommonClass.Direction.RIGHT;
+        int bestSteps = Integer.MAX_VALUE;
+
+        if (unit.coord.x < ROWS) {
+            // próbáljuk lefele
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            while (++x < ROWS) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (y < COLS && cells[x][y+1]==0) break; // a jobb alsó sarokban van egy üres mező
+                if (y > 0 && cells[x][y-1]==0) break;   // a bal alsó sarokban van egy üres mező
+            }
+            if (x < ROWS && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.DOWN;
+            }
+        }
+
+        if (unit.coord.x > 0) {
+            // próbáljuk felfele
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            while (--x > 0) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (y < COLS && cells[x][y+1]==0) break; // a jobb felső sarokban van egy üres mező
+                if (y > 0 && cells[x][y-1]==0) break;   // a bal felső sarokban van egy üres mező
+            }
+            if (x > 0 && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.UP;
+            }
+        }
+
+        if (unit.coord.y < COLS) {
+            // próbáljuk jobbra
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            
+            while (++y < COLS) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (x < ROWS && cells[x+1][y]==0) break; // a jobb alsó sarokban van egy üres mező
+                if (x > 0 && cells[x-1][y]==0) break;   // a jobb felső sarokban van egy üres mező
+            }
+            if (y < COLS && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.RIGHT;
+            }
+        }
+
+        if (unit.coord.y > 0) {
+            // próbáljuk balra
+            int steps = 0;
+            int x = unit.coord.x;
+            int y = unit.coord.y;
+            while (--y > 0) {
+                ++steps;
+                if (cells[x][y]==0) break;   // pont nekimentem egy üres mezőnek
+                if (x < ROWS && cells[x+1][y]==0) break; // a bal alsó sarokban van egy üres mező
+                if (x > 0 && cells[x-1][y]==0) break;   // a bal felső sarokban van egy üres mező
+            }
+            if (y > 0 && steps < bestSteps) {
+                bestSteps = steps;
+                bestDir = CommonClass.Direction.LEFT;
+            }
+        }
+        
+        // vízszintes/függőleges mozgással nem lett meg az "aréna"?
+        if (bestSteps == Integer.MAX_VALUE) {
+            System.out.println("Arena not found with horiz/vert search, trying other method");
+            printCells();
+            // keresem a befoglaló téglalapot
+            int l=COLS, r=0, t=ROWS, b=0;
+            for(int co=0; co<COLS; ++co) {
+                for(int ro=0; ro<ROWS; ++ro) {
+                    if (cells[ro][co]==0) {
+                        t = Math.min(ro, t);
+                        b = Math.max(ro, b);
+                        l = Math.min(co, l);
+                        r = Math.max(co, r);
+                    }
+                }
+            }
+            System.out.println("Arena coords: ("+t+":"+l+") - ("+b+":"+r+")");
+            // melyik sarka van legközelebb?
+            Coord nearestEdge = findNearestEdge(t, l, b, r, 0);
+            System.out.println("Nearest edge: "+nearestEdge);
+            System.out.println("Create steps: "+
+                    (nearestEdge.getX() - unit.coord.getX() - (int)Math.signum(nearestEdge.getX() - unit.coord.getX())) + ":" +
+                    (nearestEdge.getY() - unit.coord.getY() - (int)Math.signum(nearestEdge.getY() - unit.coord.getY()))
+                    );
+            return createPathByXYSteps(
+                    nearestEdge.getX() - unit.coord.getX() - (int)Math.signum(nearestEdge.getX() - unit.coord.getX()), 
+                    nearestEdge.getY() - unit.coord.getY() - (int)Math.signum(nearestEdge.getY() - unit.coord.getY()), 
+                    true
+                    );
+        }
+        
+        // eggyel kevesebbet kell az adott irányba lépni, mert nem kell "belemenni" a üres mezőbe
+        // hanem előtte meg kell állni
+        for(int i=0; i<(bestSteps>1 ? bestSteps-1 : bestSteps); ++i) {
+            result.add(bestDir);
+        }
+        System.out.println("Found path to arena in "+(bestSteps-1)+" steps in direction "+bestDir);
+
+        return result;
+}
 
     /**
      * Keresztirányú áthaladáshoz keres útvonalakat, csak irány-listákat 
@@ -677,5 +798,26 @@ public class PathFinder {
             y+= dirXnumber;
         }
         return result;
+    }
+
+    boolean hasWinArea(CommonClass.Direction lastDir) {
+        
+        Unit unit = units.get(0);
+        int x = unit.coord.x, y = unit.coord.y;
+        
+        if (x<1 || y<1 || x>ROWS-1 || y>COLS-1) return false;
+        
+        switch (lastDir) {
+            case UP:
+                return cells[x+1][y-1] > 0 || cells[x+1][y+1] > 0;
+            case DOWN:
+                return cells[x-1][y-1] > 0 || cells[x-1][y+1] > 0;
+            case LEFT:
+                return cells[x-1][y+1] > 0 || cells[x+1][y+1] > 0;
+            case RIGHT:
+                return cells[x-1][y-1] > 0 || cells[x+1][y-1] > 0;
+        }
+        
+        return false;
     }
 }

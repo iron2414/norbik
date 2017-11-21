@@ -35,17 +35,18 @@ public class SimManager {
      * a legnagyobb területnyereséget lehet elérni a legnagyobb valószínűséggel
      * Ha nem a harcmező szélén állunk, akkor a legrövidebb úton előbb az oda vezető utat adja vissza!!!
      * 
+     * @param wonArea
      * @return Tuple Az irány lista és az áthaladás valószínűsége
      * @throws java.lang.Throwable
      */
-    public Tuple<List<CommonClass.Direction>, Double> findPath() throws Throwable {
+    public Tuple<List<CommonClass.Direction>, Double> findPath(boolean winArea) throws Throwable {
         // véletlenül a harcmezőn ragadtunk [biztonsági feature]
         if (pathFinder.inEmptyField()) {
             // megyünk tovább
             return new Tuple<>(pathFinder.findUnitLastDirection(), 100.0);
         }
         // harcmező szélén állunk?
-        if (pathFinder.nearEmptyField()) {
+        if (pathFinder.nearEmptyField() && winArea) {
             List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
             List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
             //printSimResult(simResult);
@@ -176,5 +177,17 @@ public class SimManager {
             }
             System.out.println(collProbs.first + "% | " + p);
         }
+    }
+
+    /**
+     * Az utolsó mozgásirány ismeretében nyertünk-e területet?
+     * Azaz visszanézve az átlós irányokban van-e saját terület?
+     * 
+     * @param lastDir
+     * @return 
+     */
+    boolean hasWinArea(CommonClass.Direction lastDir) {
+        
+        return pathFinder.hasWinArea(lastDir);
     }
 }
