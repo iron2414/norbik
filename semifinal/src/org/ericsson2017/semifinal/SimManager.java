@@ -35,6 +35,7 @@ public class SimManager {
      * a legnagyobb területnyereséget lehet elérni a legnagyobb valószínűséggel
      * Ha nem a harcmező szélén állunk, akkor a legrövidebb úton előbb az oda vezető utat adja vissza!!!
      * 
+     * @param winArea
      * @param wonArea
      * @return Tuple Az irány lista és az áthaladás valószínűsége
      * @throws java.lang.Throwable
@@ -206,5 +207,9 @@ public class SimManager {
     boolean hasWinArea(CommonClass.Direction lastDir) {
         
         return pathFinder.hasWinArea(lastDir);
+    }
+    
+    public CommonClass.Direction checkMove(CommonClass.Direction dir) {
+        return pathFinder.checkMove(dir);
     }
 }

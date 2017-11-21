@@ -9,6 +9,10 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -218,7 +222,7 @@ public class Main {
     public void main() throws Throwable 
     {     
         
-        boolean isKeyboard = false;
+        boolean isKeyboard = true;
         SimManager simManager;
         Tuple<List<CommonClass.Direction>, Double> stepListWithProb;
         int health;
@@ -286,9 +290,35 @@ public class Main {
                     System.out.println(winArea ? ":-) WIN new area " : ":-( not win new area ");
                 }
             } else {
+                List<String> kbDirList = new ArrayList<>();
+                Path file;
+                
                 CommonClass.Direction keyboardDirection = CommonClass.Direction.RIGHT;
                 int keyboardHealth = response.getUnits().get(0).getHealth();
                 int keyboardLevel = response.getInfo().getLevel();
+                
+                // Try to load levels from file
+                while (true) {
+                    try {
+                        file = Paths.get("xonix_"+keyboardLevel+".kbd");
+                        kbDirList = Files.readAllLines(file);
+                        for(String dirStr : kbDirList) {
+                            CommonClass.Direction dir = strToDir(dirStr);
+                            if (dir != null) {
+                                move(dir);
+                                response=response();
+                                simManager.setResponse(response);
+                                print(response, simManager.serverResponseParser.copy());
+                                //Thread.sleep(150);
+                            }
+                        }
+                        keyboardLevel++;
+                    } catch (NoSuchFileException e) {
+                        break;
+                    }
+                }
+
+                // no more level files - use your hand!
                 while(true)
                 {
                     Thread.sleep(150);
@@ -309,18 +339,25 @@ public class Main {
                             keyboardDirection = CommonClass.Direction.RIGHT;
                         break;
                     }
-                    if(keyboardLevel != response.getInfo().getLevel())
-                    {
-                        keyboardLevel = response.getInfo().getLevel();
+                    int newLevel = response.getInfo().getLevel();
+                    if (keyboardLevel != newLevel) {
+                        file = Paths.get("xonix_"+keyboardLevel+".kbd");
+                        Files.write(file, kbDirList);
+                        kbDirList.clear();
+
+                        keyboardLevel = newLevel;
+                        keyboardHealth = response.getUnits().get(0).getHealth();
                         keyboardDirection = CommonClass.Direction.RIGHT;
-                    } else if(keyboardHealth < response.getUnits().get(0).getHealth() )
-                    {
+                    } else if(keyboardHealth < response.getUnits().get(0).getHealth() ) {
+                        //kbDirList.add("-");
                         keyboardDirection = CommonClass.Direction.RIGHT;
-                        keyboardHealth --;
-                    } else if (response.getUnits().get(0).getHealth() == 0)
-                    {
-                        break;
+                        keyboardHealth--;
+                        if (keyboardHealth == 0) {
+                            break;
+                        }
                     }
+                    keyboardDirection = simManager.checkMove(keyboardDirection);
+                    kbDirList.add(dirToStr(keyboardDirection));
                     move(keyboardDirection);
                     response=response();
                 }
@@ -387,5 +424,45 @@ public class Main {
     private ResponseClass.Response.Reader response() throws Throwable {
         return SerializePacked.readFromUnbuffered(channel).getRoot(ResponseClass.Response.factory);
 		//return Serialize.read(channel).getRoot(ResponseClass.Response.factory);
+    }
+    
+    private String dirToStr(CommonClass.Direction dir) {
+        String result = "";
+        switch (dir) {
+            case UP:
+                result = "U";
+                break;
+            case DOWN:
+                result = "D";
+                break;
+            case RIGHT:
+                result = "R";
+                break;
+            case LEFT:
+                result = "L";
+                break;
+        }
+        
+        return result;
+    }
+    
+    private CommonClass.Direction strToDir(String dirStr) {
+        CommonClass.Direction result = null;
+        switch (dirStr) {
+            case "U":
+                result = CommonClass.Direction.UP;
+                break;
+            case "D":
+                result = CommonClass.Direction.DOWN;
+                break;
+            case "R":
+                result = CommonClass.Direction.RIGHT;
+                break;
+            case "L":
+                result = CommonClass.Direction.LEFT;
+                break;
+        }
+        
+        return result;
     }
 }

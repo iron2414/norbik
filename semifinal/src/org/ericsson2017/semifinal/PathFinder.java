@@ -825,7 +825,7 @@ public class PathFinder {
         return result;
     }
 
-    boolean hasWinArea(CommonClass.Direction lastDir) {
+    public boolean hasWinArea(CommonClass.Direction lastDir) {
         
         Unit unit = units.get(0);
         int x = unit.coord.x, y = unit.coord.y;
@@ -846,7 +846,26 @@ public class PathFinder {
         return false;
     }
     
-    
+    public CommonClass.Direction checkMove(CommonClass.Direction dir) {
+        Unit unit = units.get(0);
+        
+        switch (dir) {
+            case RIGHT:
+                if (unit.coord.y == COLS-1) return CommonClass.Direction.LEFT;
+                break;
+            case LEFT:
+                if (unit.coord.y == 0) return CommonClass.Direction.RIGHT;
+                break;
+            case UP:
+                if (unit.coord.x == 0) return CommonClass.Direction.DOWN;
+                break;
+            case DOWN:
+                if (unit.coord.x == ROWS-1) return CommonClass.Direction.UP;
+                break;
+        }
+        
+        return dir;
+    }
     
     public Tuple<Coord, Coord> getBiggestRectangle() {
         //Befoglaló téglalap
@@ -867,7 +886,7 @@ public class PathFinder {
         return result;
     }
 
-    Tuple<Coord, Coord> getNearestPerpendicularWalls(Unit unit, Tuple<Coord, Coord> rectangle) {
+    private Tuple<Coord, Coord> getNearestPerpendicularWalls(Unit unit, Tuple<Coord, Coord> rectangle) {
         int tmpx = unit.getCoord().x;
         int tmpy = unit.getCoord().y;
         int x;
@@ -967,5 +986,5 @@ public class PathFinder {
         
         Tuple<Coord, Coord> result = new Tuple<Coord, Coord>(horizontal,vertical);
         return result;
-    }
+    } 
 }
