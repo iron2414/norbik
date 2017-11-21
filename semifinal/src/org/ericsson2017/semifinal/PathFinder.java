@@ -845,4 +845,127 @@ public class PathFinder {
         
         return false;
     }
+    
+    
+    
+    public Tuple<Coord, Coord> getBiggestRectangle() {
+        //Befoglaló téglalap
+            int left=COLS, right=0, top=ROWS, bottom=0;
+            for(int co=0; co<COLS; ++co) {
+                for(int ro=0; ro<ROWS; ++ro) {
+                    if (cells[ro][co]==0) {
+                        top = Math.min(ro, top);
+                        bottom = Math.max(ro, bottom);
+                        left = Math.min(co, left);
+                        right = Math.max(co, right);
+                    }
+                }
+            }
+            Coord topLeft = new Coord(top,left);
+            Coord bottomRight = new Coord(bottom,right);
+        Tuple<Coord, Coord> result = new Tuple<Coord, Coord>(topLeft,bottomRight);
+        return result;
+    }
+
+    Tuple<Coord, Coord> getNearestPerpendicularWalls(Unit unit, Tuple<Coord, Coord> rectangle) {
+        int tmpx = unit.getCoord().x;
+        int tmpy = unit.getCoord().y;
+        int x;
+        int y;
+        
+        //balra
+        int leftStep = 0;
+        boolean found = false;
+        while(tmpy > 0 && !found)
+        {
+            if(tmpy == rectangle.first.y || tmpy == rectangle.second.y) {
+                found = true;
+            } else {
+                tmpy--;
+                leftStep++;
+            }
+        }
+        if(!found) {
+            leftStep = 0;
+        }
+        
+        //jobbra
+        int rightStep = 0;
+        found = false;
+        tmpy = unit.getCoord().y;
+        while(tmpy < COLS && !found)
+        {
+            if(tmpy == rectangle.first.y || tmpy == rectangle.second.y) {
+                found = true;
+            } else {
+                tmpy++;
+                rightStep++;
+            }
+        }
+        if(!found) {
+            rightStep = 0;
+        }
+        
+        //A kisebbet előszedem, ha balra mentem akkor negatív előjellel
+        if(leftStep<rightStep)
+        {
+            y = -1 * leftStep;
+        } else {
+            y = rightStep;
+        }
+        
+        Coord horizontal = new Coord(tmpx, y);
+        
+        
+        //Fel
+        tmpy = unit.getCoord().y;
+        tmpx = unit.getCoord().x;
+        
+        int upStep = 0;
+        found = false;
+        while(tmpx > 0 && !found)
+        {
+            if(tmpx == rectangle.first.x || tmpx == rectangle.second.x) {
+                found = true;
+            } else {
+                tmpx--;
+                upStep++;
+            }
+        }
+        
+        if(!found) {
+            upStep = 0;
+        }
+        
+        //Le
+        int downStep = 0;
+        found = false;
+        tmpx = unit.getCoord().x;
+        while(tmpx < ROWS && !found)
+        {
+            if(tmpx == rectangle.first.x || tmpx == rectangle.second.x) {
+                found = true;
+            } else {
+                tmpx++;
+                downStep++;
+            }
+        }
+        
+        if(!found) {
+            downStep = 0;
+        }
+        //A kisebbet előszedem, ha balra mentem akkor negatív előjellel
+        if(upStep<downStep)
+        {
+            x = -1 * upStep;
+        } else {
+            x = rightStep;
+        }
+        
+        Coord vertical = new Coord(x, tmpy);
+        
+        
+        Tuple<Coord, Coord> result = new Tuple<Coord, Coord>(horizontal,vertical);
+        return result;
+    }
 }

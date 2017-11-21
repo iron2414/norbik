@@ -44,8 +44,25 @@ public class SimManager {
         if (pathFinder.inEmptyField()) {
             // megyünk tovább
             return new Tuple<>(pathFinder.findUnitLastDirection(), 100.0);
-        }
+        } 
+        //Az új még nem kész verzió
+        /*else {
+            Tuple<Coord, Coord> rectangle = pathFinder.getBiggestRectangle();
+            System.out.println("TopLeft: " + rectangle.first.x + "-" + rectangle.first.y);
+            System.out.println("BottomRight: " + rectangle.second.x + "-" + rectangle.second.y);
+            
+           //TODO még nem működik
+            Tuple<Coord, Coord> perpendicularWalls = pathFinder.getNearestPerpendicularWalls(serverResponseParser.getUnits().get(0),rectangle);
+            System.out.println("Horizontal: " + perpendicularWalls.first.x + "-" + perpendicularWalls.first.y);
+            System.out.println("Vertical: " + perpendicularWalls.second.x + "-" + perpendicularWalls.second.y);
+            
+            List<CommonClass.Direction> debug = new ArrayList<>();
+            Tuple<List<CommonClass.Direction>, Double> abc = new Tuple<>(debug,100.0);
+           return abc;
+            
+        }*/
         // harcmező szélén állunk?
+        //Az új specifikáció miatt ezek kikerültek a felette lévő else került be.
         if (pathFinder.nearEmptyField() && winArea) {
             List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
             List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
