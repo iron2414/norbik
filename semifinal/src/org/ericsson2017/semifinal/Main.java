@@ -63,6 +63,7 @@ public class Main {
         private int kl;
         private int kr;
         private int ku;
+        public String tmp = "right";
         
         @Override
         public void keyTyped(KeyEvent event) {
@@ -75,18 +76,22 @@ public class Main {
                 case KeyEvent.VK_DOWN:
                     kd=1;
                     dy=kd-ku;
+                    tmp = "down";
                     break;
                 case KeyEvent.VK_LEFT:
                     kl=1;
                     dx=kr-kl;
+                    tmp = "left";
                     break;
                 case KeyEvent.VK_RIGHT:
                     kr=1;
                     dx=kr-kl;
+                    tmp = "right";
                     break;
                 case KeyEvent.VK_UP:
                     ku=1;
                     dy=kd-ku;
+                    tmp = "up";
                     break;
             }
         }
@@ -212,6 +217,8 @@ public class Main {
 
     public void main() throws Throwable 
     {     
+        
+        boolean isKeyboard = false;
         SimManager simManager;
         Tuple<List<CommonClass.Direction>, Double> stepListWithProb;
         int health;
@@ -227,53 +234,96 @@ public class Main {
 
             ResponseClass.Response.Reader response=response();
             simManager = new SimManager(response);
-            print(response, simManager.serverResponseParser.copy());
-            boolean winArea = true;
+            
+            if(!isKeyboard)
+            {
+                print(response, simManager.serverResponseParser.copy());
+                boolean winArea = true;
 
-            while ((health = response.getUnits().get(0).getHealth())>0) {
-                // keress egy viszonylag nagy területnyereséggel kecsegtető
-                // viszonylag nagy valószínűséggel bejárható útvonalat!
-                stepListWithProb = simManager.findPath(winArea);
-                if (stepListWithProb == null) {
-                    System.out.println("*** CANNOT FIND PATH!!! ***\nUsing DOWN step - what else?");
-                    List<CommonClass.Direction> dirList = new ArrayList<>();
-                    move(CommonClass.Direction.DOWN);   // menj egyet le és utána is majd egyet le
-                    dirList.add(CommonClass.Direction.DOWN);
-                    
-                    stepListWithProb = new Tuple<>(dirList, 100.0);
+                while ((health = response.getUnits().get(0).getHealth())>0) {
+                    // keress egy viszonylag nagy területnyereséggel kecsegtető
+                    // viszonylag nagy valószínűséggel bejárható útvonalat!
+                    stepListWithProb = simManager.findPath(winArea);
+                    if (stepListWithProb == null) {
+                        System.out.println("*** CANNOT FIND PATH!!! ***\nUsing DOWN step - what else?");
+                        List<CommonClass.Direction> dirList = new ArrayList<>();
+                        move(CommonClass.Direction.DOWN);   // menj egyet le és utána is majd egyet le
+                        dirList.add(CommonClass.Direction.DOWN);
+
+                        stepListWithProb = new Tuple<>(dirList, 100.0);
+                    }
+                    List<CommonClass.Direction> stepList = stepListWithProb.first;
+                    System.out.println("Try steps: "+stepList.toString()+"\nProbability: "+stepListWithProb.second+"\n----------------------\n");
+
+                    // kezdjük el végigjárni az ajánlott utat
+                    for(int i=0; i<stepList.size(); ++i) {
+                        move(stepList.get(i));
+                        response=response();
+                        if (response.getUnits().get(0).getHealth() < health) {
+                            System.out.println("***** DIE *****");
+                            printCells(response);
+                            System.out.println("***** DIE *****");
+                            break;
+                        }
+
+                        // futtassuk újra a szimulációt, ellenőrizzük az ütközés valószínűségét
+                        // és ha szükséges, keressünk menekülő útvonalat!
+                        simManager.setResponse(response);
+                                            print(response, simManager.serverResponseParser.copy());
+                        stepList = simManager.checkPath(stepList, i);
+                    }
+
+                    simManager.setResponse(response);
+
+                    // elvileg most bejártuk a tervezett vagy a menekülő  útvonalat
+                    // ellenőrizzük, hogy kaptunk-e területet
+                    if (stepList.size()>0) {
+                        winArea = simManager.hasWinArea(stepList.get(stepList.size()-1));
+                    } else {
+                        winArea = false;
+                    }
+                    System.out.println("*** Planned stepList successfully stepped ***");
+                    System.out.println(winArea ? ":-) WIN new area " : ":-( not win new area ");
                 }
-                List<CommonClass.Direction> stepList = stepListWithProb.first;
-                System.out.println("Try steps: "+stepList.toString()+"\nProbability: "+stepListWithProb.second+"\n----------------------\n");
-
-                // kezdjük el végigjárni az ajánlott utat
-                for(int i=0; i<stepList.size(); ++i) {
-                    move(stepList.get(i));
-                    response=response();
-                    if (response.getUnits().get(0).getHealth() < health) {
-                        System.out.println("***** DIE *****");
-                        printCells(response);
-                        System.out.println("***** DIE *****");
+            } else {
+                CommonClass.Direction keyboardDirection = CommonClass.Direction.RIGHT;
+                int keyboardHealth = response.getUnits().get(0).getHealth();
+                int keyboardLevel = response.getInfo().getLevel();
+                while(true)
+                {
+                    Thread.sleep(150);
+                    simManager.setResponse(response);
+                    print(response, simManager.serverResponseParser.copy());
+                    switch(keyboardListener.tmp)
+                    {
+                        case "down":
+                            keyboardDirection = CommonClass.Direction.DOWN;
+                        break;
+                        case "up":
+                            keyboardDirection = CommonClass.Direction.UP;
+                        break;
+                        case "left":
+                            keyboardDirection = CommonClass.Direction.LEFT;
+                        break;
+                        case "right":
+                            keyboardDirection = CommonClass.Direction.RIGHT;
                         break;
                     }
-                    
-                    // futtassuk újra a szimulációt, ellenőrizzük az ütközés valószínűségét
-                    // és ha szükséges, keressünk menekülő útvonalat!
-                    simManager.setResponse(response);
-					print(response, simManager.serverResponseParser.copy());
-                    stepList = simManager.checkPath(stepList, i);
+                    if(keyboardLevel != response.getInfo().getLevel())
+                    {
+                        keyboardLevel = response.getInfo().getLevel();
+                        keyboardDirection = CommonClass.Direction.RIGHT;
+                    } else if(keyboardHealth < response.getUnits().get(0).getHealth() )
+                    {
+                        keyboardDirection = CommonClass.Direction.RIGHT;
+                        keyboardHealth --;
+                    } else if (response.getUnits().get(0).getHealth() == 0)
+                    {
+                        break;
+                    }
+                    move(keyboardDirection);
+                    response=response();
                 }
-                
-                simManager.setResponse(response);
-                
-                // elvileg most bejártuk a tervezett vagy a menekülő  útvonalat
-                // ellenőrizzük, hogy kaptunk-e területet
-                if (stepList.size()>0) {
-                    winArea = simManager.hasWinArea(stepList.get(stepList.size()-1));
-                } else {
-                    winArea = false;
-                }
-                System.out.println("*** Planned stepList successfully stepped ***");
-                System.out.println(winArea ? ":-) WIN new area " : ":-( not win new area ");
             }
         } finally {
             frame.dispose();
