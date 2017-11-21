@@ -22,7 +22,7 @@ public class ResponseRenderer {
 	private static final Font FONT=new Font("Monospaced", 0, 12);
 	private static final int PADDING=3;
 	
-	private final CrystalBall ball=new CrystalBall();
+	private final CrystalBall ball;
 	private int cellSize;
 	private int cellsHeight;
 	private int cellsWidth;
@@ -36,8 +36,9 @@ public class ResponseRenderer {
 	private final ServerResponseParser response;
 	private final int width;
 
-	private ResponseRenderer(Graphics2D graphics, int height,
-			ServerResponseParser response, int width) {
+	private ResponseRenderer(CrystalBall ball, Graphics2D graphics,
+            int height, ServerResponseParser response, int width) {
+        this.ball=ball;
 		this.graphics=graphics;
 		this.height=height;
 		this.response=response;
@@ -117,8 +118,6 @@ public class ResponseRenderer {
 					cellsX+cc*cellSize,
 					cellsY+cellsHeight*cellSize);
 		}
-		ball.reset(response, 10);
-		ball.addEnemies(response.enemies);
 		for (int xx=cellsWidth-1; 0<=xx; --xx) {
 			int cx=cellsX+xx*cellSize;
 			for (int yy=cellsHeight-1; 0<=yy; --yy) {
@@ -179,8 +178,8 @@ public class ResponseRenderer {
 	}
 	
 	public static void render(Graphics2D graphics, int width, int height,
-			ServerResponseParser response) {
-		new ResponseRenderer(graphics, height, response, width)
+			CrystalBall ball, ServerResponseParser response) {
+		new ResponseRenderer(ball, graphics, height, response, width)
 				.render();
 	}
 }

@@ -15,7 +15,7 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 import org.capnproto.MessageBuilder;
-import org.capnproto.Serialize;
+import org.capnproto.SerializePacked;
 import org.ericsson2017.protocol.semifinal.CommandClass;
 import org.ericsson2017.protocol.semifinal.CommonClass;
 import org.ericsson2017.protocol.semifinal.ResponseClass;
@@ -24,14 +24,17 @@ public class Main {
 	private static class Canvas extends JPanel {
 		private static final long serialVersionUID=0l;
 		
-		private final AtomicReference<ServerResponseParser> response
-				=new AtomicReference<>();
+		private final AtomicReference<Prerendered> prerendered
+                =new AtomicReference<>();
 		
 		@Override
 		protected void paintComponent(Graphics graphics) {
 			try {
+                Prerendered prerendered2=prerendered.get();
 				ResponseRenderer.render((Graphics2D)graphics, getWidth(),
-						getHeight(), response.get());
+						getHeight(),
+                        (null==prerendered2)?null:prerendered2.ball,
+                        (null==prerendered2)?null:prerendered2.response);
 			}
 			catch (Throwable throwable) {
 				throwable.printStackTrace(System.err);
@@ -45,11 +48,56 @@ public class Main {
 			}
 		}
 		
-		public void render(ServerResponseParser response) {
-			this.response.set(response);
+		public void render(Prerendered prerendered) {
+			this.prerendered.set(prerendered);
 			SwingUtilities.invokeLater(this::repaint);
 		}
 	}
+    
+    private class Prerender implements Runnable {
+		private final Object lock=new Object();
+        private ServerResponseParser response;
+        
+        public void prerender(ServerResponseParser response) {
+            synchronized (lock) {
+                this.response=response;
+                lock.notify();
+            }
+        }
+        
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    ServerResponseParser response2;
+                    synchronized (lock) {
+                        while (null==response) {
+                            lock.wait();
+                        }
+                        response2=response;
+                        response=null;
+                    }
+                    CrystalBall ball=new CrystalBall();
+                    ball.reset(response2, 20);
+                    ball.addEnemies(response2.enemies);
+                    canvas.render(new Prerendered(ball, response2));
+                }
+            }
+            catch (InterruptedException ex) {
+                ex.printStackTrace(System.err);
+            }
+        }
+    }
+    
+    private class Prerendered {
+        public final CrystalBall ball;
+        public final ServerResponseParser response;
+        
+        public Prerendered(CrystalBall ball, ServerResponseParser response) {
+            this.ball=ball;
+            this.response=response;
+        }
+    }
 	
     public static final String HASH="r6mgylzcdd7vtrq5ewpw1zoopj04lgqrwor";
     //public static final String HOST="ecovpn.dyndns.org";
@@ -60,6 +108,7 @@ public class Main {
     private final Canvas canvas;
     private final SocketChannel channel;
 	private final JFrame frame;
+	private final Prerender prerender=new Prerender();
 
     public Main(SocketChannel channel) {
         this.channel=channel;
@@ -103,6 +152,10 @@ public class Main {
         SimManager simManager;
         Tuple<List<CommonClass.Direction>, Double> stepListWithProb;
         int health;
+        
+        Thread prerenderer=new Thread(prerender);
+        prerenderer.setDaemon(true);
+        prerenderer.start();
         
         frame.setVisible(true);
         try {
@@ -213,13 +266,13 @@ public class Main {
 		if (!frame.isDisplayable()) {
 			throw new RuntimeException("frame closed");
 		}
-        canvas.render(response2);
+        prerender.prerender(response2.copy());
         printStatus(response);
         return response;
     }
 	
     private ResponseClass.Response.Reader response() throws Throwable {
-        return org.capnproto.SerializePacked.readFromUnbuffered(channel).getRoot(ResponseClass.Response.factory);
+        return SerializePacked.readFromUnbuffered(channel).getRoot(ResponseClass.Response.factory);
 		//return Serialize.read(channel).getRoot(ResponseClass.Response.factory);
     }
 }
