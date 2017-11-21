@@ -24,7 +24,7 @@ public class OptimalPathSelector {
     /**
      * "Elég nagy" területnyereség -> a maximálisan megszerezhető terület ennyi %-a már jó kompromisszum
      */
-    public static final double REWARD_AREA_BIG_ENOUGH = 20.0;
+    public static final double REWARD_AREA_BIG_ENOUGH = 25.0;
     
     /**
      * Optimális áthaladási útvonalat keres a szimuláció eredménye alapján

@@ -135,6 +135,8 @@ public class Main {
                     response=response();
                     if (response.getUnits().get(0).getHealth() < health) {
                         System.out.println("***** DIE *****");
+                        printCells(response);
+                        System.out.println("***** DIE *****");
                         break;
                     }
                     
@@ -154,6 +156,8 @@ public class Main {
                 } else {
                     winArea = false;
                 }
+                System.out.println("*** Planned stepList successfully stepped ***");
+                System.out.println(winArea ? ":-) WIN new area " : ":-( not win new area ");
             }
         } finally {
             frame.dispose();

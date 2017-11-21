@@ -63,8 +63,7 @@ public class PathFinder {
         return false;
     }
 
-    /*
-    public List<CommonClass.Direction> findShortestPathToEmptyField() {
+    public List<CommonClass.Direction> findShortestPathToEmptyField1() {
         List<CommonClass.Direction> result = new ArrayList<>();
         Unit unit = units.get(0);
         int area = 0;
@@ -206,7 +205,7 @@ public class PathFinder {
                     while(j<=i && !found)
                     {
                         //Fent
-                        if((x-i)>0 && (x-i)<(ROWS-1) && (y+j)>0 && (y+j)<(COLS-1) && cellsCopy[x-i][y+j] == 0)
+                        if((x-i)>=0 && (y+j)>=0 && (y+j)<COLS && cellsCopy[x-i][y+j] == 0)
                         {
                             x = x-i;
                             y = y+j;
@@ -215,7 +214,7 @@ public class PathFinder {
                         }
                         
                         //Lent
-                        if((x+i)<(ROWS-1) && (y+j)<(COLS-1) && (y+j)>0 && cellsCopy[x+i][y+j] == 0)
+                        if((x+i)<ROWS && (y+j)<COLS && (y+j)>=0 && cellsCopy[x+i][y+j] == 0)
                         {
                             x = x+i;
                             y = y+j;
@@ -224,7 +223,7 @@ public class PathFinder {
                         }
                         
                         //Balra
-                        if((x+j)>0 && (x+j)<(ROWS-1) && (y-i)>0 && (y-i)<(COLS-1) && cellsCopy[x+j][y-i] == 0)
+                        if((x+j)>=0 && (x+j)<ROWS && (y-i)>=0 && cellsCopy[x+j][y-i] == 0)
                         {
                             x = x+j;
                             y = y+i;
@@ -233,7 +232,7 @@ public class PathFinder {
                         }
                         
                         //Jobbra
-                        if((x+j)<(ROWS-1) && (x+j)>0 && (y+i)<(COLS-1) && cellsCopy[x+j][y+i] == 0)
+                        if((x+j)<ROWS && (x+j)>=0 && (y+i)<COLS && cellsCopy[x+j][y+i] == 0)
                         {
                             x = x+j;
                             y = y+i;
@@ -261,7 +260,6 @@ public class PathFinder {
 
         return result;
     }
-    */
     
     public List<CommonClass.Direction> findShortestPathToEmptyField() {
         List<CommonClass.Direction> result = new ArrayList<>();
