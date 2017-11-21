@@ -222,7 +222,7 @@ public class Main {
     public void main() throws Throwable 
     {     
         
-        boolean isKeyboard = true;
+        boolean isKeyboard = false;
         SimManager simManager;
         Tuple<List<CommonClass.Direction>, Double> stepListWithProb;
         int health;

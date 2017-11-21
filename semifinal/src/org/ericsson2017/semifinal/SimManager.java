@@ -47,7 +47,8 @@ public class SimManager {
             return new Tuple<>(pathFinder.findUnitLastDirection(), 100.0);
         } 
         //Az új még nem kész verzió
-        /*else {
+        /*
+        else {
             Tuple<Coord, Coord> rectangle = pathFinder.getBiggestRectangle();
             System.out.println("TopLeft: " + rectangle.first.x + "-" + rectangle.first.y);
             System.out.println("BottomRight: " + rectangle.second.x + "-" + rectangle.second.y);
@@ -61,7 +62,8 @@ public class SimManager {
             Tuple<List<CommonClass.Direction>, Double> abc = new Tuple<>(debug,100.0);
            return abc;
             
-        }*/
+        }
+        */
         // harcmező szélén állunk?
         //Az új specifikáció miatt ezek kikerültek a felette lévő else került be.
         if (pathFinder.nearEmptyField() && winArea) {

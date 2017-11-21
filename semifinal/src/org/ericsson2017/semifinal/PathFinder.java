@@ -886,7 +886,72 @@ public class PathFinder {
         return result;
     }
 
-    private Tuple<Coord, Coord> getNearestPerpendicularWalls(Unit unit, Tuple<Coord, Coord> rectangle) {
+    // NagyNorbi
+    public Tuple<Coord, Coord> getNearestPerpendicularWalls(Unit unit, Tuple<Coord, Coord> rectangle) {
+        Tuple<Coord, Coord> result;
+        
+        int oX = unit.getCoord().x;
+        int oY = unit.getCoord().y;
+        int t = rectangle.first.x;
+        int b = rectangle.second.x;
+        int l = rectangle.first.y;
+        int r = rectangle.second.y;
+        
+        // bal oldali metszéspontból menjünk a unit felé amíg meg nem találjuk az arénát
+        int lft = l;
+        while (cells[oX][lft] > 0 && lft > oY) {
+            ++lft;
+        }
+        
+        // jobbról
+        int rgt = r;
+        while (cells[oX][rgt] > 0 && oY < rgt) {
+            --rgt;
+        }
+        
+        // fentről
+        int top = t;
+        while (cells[top][oY] > 0 && top < oX) {
+            ++top;
+        }
+        
+        // lentről
+        int btm = b;
+        while (cells[btm][oY] > 0 && oX > btm) {
+            --btm;
+        }
+        
+        // TODO: nem fog jól működni, ha valamelyik irányban elfoglaltam az egész csíkot!!!
+        
+        // távolságok a középponttól
+        int dl = oY - lft;
+        int dr = rgt - oY;
+        int dt = oX - top;
+        int db = btm - oX;
+        
+        if (dl < dr) {
+            if (dt < db) {
+                // left - top
+                result = new Tuple<>(new Coord(oX, lft), new Coord(top, oY));
+            } else {
+                // left - bottom
+                result = new Tuple<>(new Coord(oX, lft), new Coord(btm, oY));
+            }
+        } else {
+            if (dt < db) {
+                // right - top
+                result = new Tuple<>(new Coord(oX, rgt), new Coord(top, oY));
+            } else {
+                // right - bottom
+                result = new Tuple<>(new Coord(oX, rgt), new Coord(btm, oY));
+            }
+        }
+        
+        return result;
+    }
+    
+    // KisNorbi
+    public Tuple<Coord, Coord> getNearestPerpendicularWalls1(Unit unit, Tuple<Coord, Coord> rectangle) {
         int tmpx = unit.getCoord().x;
         int tmpy = unit.getCoord().y;
         int x;
