@@ -1213,6 +1213,7 @@ public class PathFinder {
                     pathList.add(origDirOpp);
                 }
                 */
+                // TODO: a túlsó felétől visszafelé az aréna utolsó pontjáig
                 for(int n = 0; n < (my ? arena.second.x-arena.first.x : arena.second.y-arena.first.y); ++n) {
                     pathList.add(origDirOpp);
                 }
@@ -1245,6 +1246,7 @@ public class PathFinder {
                     pathList.add(origDirOpp);
                 }
                 */
+                // TODO: a túlsó felétől visszafelé az aréna utolsó pontjáig
                 for(int n = 0; n < (my ? arena.second.x-arena.first.x : arena.second.y-arena.first.y); ++n) {
                     pathList.add(origDirOpp);
                 }
