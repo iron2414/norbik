@@ -1157,7 +1157,7 @@ public class PathFinder {
             // merre kell merőlegesen lépkedni
             CommonClass.Direction stepDir1 = CommonClass.Direction.RIGHT, 
                                   stepDir2 = CommonClass.Direction.LEFT,
-                                  origDir = pathListToWall.get(pathListToWall.size()-1),
+                                  origDir = pathListToWall.get(pathListToWall.size()-1),    // TODO: ha üres a lista, hibára fut
                                   origDirOpp = CommonClass.Direction.UP;
             boolean mx=false, my=false;
 
