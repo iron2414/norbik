@@ -47,25 +47,40 @@ public class SimManager {
             return new Tuple<>(pathFinder.findUnitLastDirection(), 100.0);
         } 
         //Az új még nem kész verzió
-        /*
+        
         else {
             Tuple<Coord, Coord> rectangle = pathFinder.getBiggestRectangle();
-            System.out.println("TopLeft: " + rectangle.first.x + "-" + rectangle.first.y);
-            System.out.println("BottomRight: " + rectangle.second.x + "-" + rectangle.second.y);
-            
-           //TODO még nem működik
-            Tuple<Coord, Coord> perpendicularWalls = pathFinder.getNearestPerpendicularWalls(serverResponseParser.getUnits().get(0),rectangle);
-            System.out.println("Horizontal: " + perpendicularWalls.first.x + "-" + perpendicularWalls.first.y);
-            System.out.println("Vertical: " + perpendicularWalls.second.x + "-" + perpendicularWalls.second.y);
-            
-            List<CommonClass.Direction> debug = new ArrayList<>();
-            Tuple<List<CommonClass.Direction>, Double> abc = new Tuple<>(debug,100.0);
-           return abc;
-            
+            System.out.println("TopLeft: " + rectangle.first.x + ":" + rectangle.first.y);
+            System.out.println("BottomRight: " + rectangle.second.x + ":" + rectangle.second.y);
+        
+            if (pathFinder.isUnitInRect(rectangle)) {
+                Tuple<Coord, Coord> perpendicularWalls = pathFinder.getNearestPerpendicularWalls(rectangle);
+                System.out.println("Horizontal: " + perpendicularWalls.first.x + ":" + perpendicularWalls.first.y);
+                System.out.println("Vertical: " + perpendicularWalls.second.x + ":" + perpendicularWalls.second.y);
+                
+                // TODO: pathFinder-rel U alakú útvonalakat terveztetni unit0 és a merőleges falak "közé"
+                List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.generateUPaths(perpendicularWalls, rectangle);
+                // TODO: leszimuláltatni az előállt útvonal-listát
+                // TODO: kiválasztani a legjobbat és visszatérni vele
+                List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
+                    //printSimResult(simResult);
+                return optiPathSel.findOptimalPath(simResult);
+            } else {
+                // a régi kód
+                if (pathFinder.nearEmptyField()) {
+                    List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
+                    List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
+                    //printSimResult(simResult);
+                    return optiPathSel.findOptimalPath(simResult);
+                } else {
+                    return new Tuple<>(pathFinder.findShortestPathToEmptyField(), 100.0);
+                }
+            }
         }
-        */
+        
         // harcmező szélén állunk?
         //Az új specifikáció miatt ezek kikerültek a felette lévő else került be.
+        /*
         if (pathFinder.nearEmptyField() && winArea) {
             List<Tuple<List<CommonClass.Direction>, Integer>> pathAndAreas = pathFinder.findCrossPaths();
             List<SimResult> simResult = simulator.simulatePaths(pathAndAreas);
@@ -74,6 +89,7 @@ public class SimManager {
         } else {
             return new Tuple<>(pathFinder.findShortestPathToEmptyField(), 100.0);
         }
+        */
     }
     
     /**

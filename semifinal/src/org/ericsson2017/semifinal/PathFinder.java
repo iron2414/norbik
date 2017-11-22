@@ -825,6 +825,12 @@ public class PathFinder {
         return result;
     }
 
+    /**
+     * Nyertünk-e területet: az utolsó lépés után kell meghívni
+     * 
+     * @param lastDir
+     * @return 
+     */
     public boolean hasWinArea(CommonClass.Direction lastDir) {
         
         Unit unit = units.get(0);
@@ -846,6 +852,13 @@ public class PathFinder {
         return false;
     }
     
+    /**
+     * Postprocess ellenőrzés: ha a megadott irányba 1-et tovább létve az első egységgel az kilépne
+     * a pályáról, akkor az ellentétes irányt adja vissza
+     * 
+     * @param dir
+     * @return 
+     */
     public CommonClass.Direction checkMove(CommonClass.Direction dir) {
         Unit unit = units.get(0);
         
@@ -867,6 +880,10 @@ public class PathFinder {
         return dir;
     }
     
+    /**
+     * Az aréna befoglaló téglalapjának bal felső és jobb alsó sarkát adja vissza
+     * @return
+     */
     public Tuple<Coord, Coord> getBiggestRectangle() {
         //Befoglaló téglalap
             int left=COLS, right=0, top=ROWS, bottom=0;
@@ -887,7 +904,8 @@ public class PathFinder {
     }
 
     // NagyNorbi
-    public Tuple<Coord, Coord> getNearestPerpendicularWalls(Unit unit, Tuple<Coord, Coord> rectangle) {
+    public Tuple<Coord, Coord> getNearestPerpendicularWalls(Tuple<Coord, Coord> rectangle) {
+        Unit unit = units.get(0);
         Tuple<Coord, Coord> result;
         
         int oX = unit.getCoord().x;
@@ -896,32 +914,76 @@ public class PathFinder {
         int b = rectangle.second.x;
         int l = rectangle.first.y;
         int r = rectangle.second.y;
+        boolean found;
         
         // bal oldali metszéspontból menjünk a unit felé amíg meg nem találjuk az arénát
+        // közben vertikálisan scanneljük a téglalapot és álljunk meg, ha megvan az aréna
         int lft = l;
-        while (cells[oX][lft] > 0 && lft > oY) {
-            ++lft;
+        found = false;
+        while (lft > oY) {
+            for (int x = t; x<=b; ++x) {
+                if (cells[x][lft] == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                break;
+            } else {
+                ++lft;
+            }
         }
         
         // jobbról
         int rgt = r;
-        while (cells[oX][rgt] > 0 && oY < rgt) {
-            --rgt;
+        found = false;
+        while (oY < rgt) {
+            for (int x = t; x<=b; ++x) {
+                if (cells[x][rgt] == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                break;
+            } else {
+                --rgt;
+            }
         }
         
         // fentről
         int top = t;
-        while (cells[top][oY] > 0 && top < oX) {
-            ++top;
+        found = false;
+        while (top < oX) {
+            for (int y = l; y<=r; ++y) {
+                if (cells[top][y] == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                break;
+            } else {
+                ++top;
+            }
         }
         
         // lentről
         int btm = b;
+        found = false;
         while (cells[btm][oY] > 0 && oX > btm) {
-            --btm;
+            for (int y = l; y<=r; ++y) {
+                if (cells[btm][y] == 0) {
+                    found = true;
+                    break;
+                }
+            }
+            if (found) {
+                break;
+            } else {
+                --btm;
+            }
         }
-        
-        // TODO: nem fog jól működni, ha valamelyik irányban elfoglaltam az egész csíkot!!!
         
         // távolságok a középponttól
         int dl = oY - lft;
@@ -1052,4 +1114,146 @@ public class PathFinder {
         Tuple<Coord, Coord> result = new Tuple<Coord, Coord>(horizontal,vertical);
         return result;
     } 
+
+    public boolean isUnitInRect(Tuple<Coord, Coord> rectangle) {
+        Unit unit = units.get(0);
+        
+        return (unit.coord.x >= rectangle.first.x && unit.coord.x <= rectangle.second.x &&
+            unit.coord.y >= rectangle.first.y && unit.coord.y <= rectangle.second.y);
+    }
+
+    /**
+     * U alakú útvonalakat tervez úgy, hogy az első egység elmegy az első, aztán a második magadott pontig,
+     * majd merőlegesen fel/le illetve jobbra/balra lép 1..n lépést legfeljebb a falig, majd ismét
+     * merőlegesen elmegy az aréna túlsó végéig
+     * 
+     * @param perpendicularWalls
+     * @return 
+     */
+    List<Tuple<List<CommonClass.Direction>, Integer>> generateUPaths(Tuple<Coord, Coord> perpendicularWalls, Tuple<Coord, Coord> arena) {
+        List<Tuple<List<CommonClass.Direction>, Integer>> result = new ArrayList<>();
+        List<CommonClass.Direction> pathList = new ArrayList<>();
+        List<CommonClass.Direction> pathListToWall = new ArrayList<>();
+        
+        Unit unit = units.get(0);
+        
+        List<Coord> wallPoints = new ArrayList<>();
+        wallPoints.add(perpendicularWalls.first);
+        wallPoints.add(perpendicularWalls.second);
+        int arenaSize = (arena.second.x-arena.first.x) * (arena.second.y-arena.first.y);
+        
+        for(Coord wallPoint : wallPoints) {
+            // elmegyünk a falig
+            pathListToWall.clear();
+            pathListToWall.addAll(calculateRoute(unit, wallPoint.x, wallPoint.y));
+            
+            // itt vagyunk most
+            int ox = wallPoint.x;
+            int oy = wallPoint.y;
+            // ezzel fogunk lépkedni
+            int x = ox;
+            int y = oy;
+            
+            // merre kell merőlegesen lépkedni
+            CommonClass.Direction stepDir1 = CommonClass.Direction.RIGHT, 
+                                  stepDir2 = CommonClass.Direction.LEFT,
+                                  origDir = pathListToWall.get(pathListToWall.size()-1),
+                                  origDirOpp = CommonClass.Direction.UP;
+            boolean mx=false, my=false;
+
+            switch (origDir) {
+                case UP:
+                    my = true;  // y tengelyen kell lépkedni
+                    stepDir1 = CommonClass.Direction.RIGHT; // növelve a koordinátát
+                    stepDir2 = CommonClass.Direction.LEFT;
+                    origDirOpp = CommonClass.Direction.DOWN;
+                    break;
+                case DOWN:
+                    my = true;  // y tengelyen kell lépkedni
+                    stepDir1 = CommonClass.Direction.RIGHT; // növelve a koordinátát
+                    stepDir2 = CommonClass.Direction.LEFT;
+                    origDirOpp = CommonClass.Direction.UP;
+                    break;
+                case LEFT:
+                    mx = true;  // y tengelyen kell lépkedni
+                    stepDir1 = CommonClass.Direction.DOWN;
+                    stepDir2 = CommonClass.Direction.UP;
+                    origDirOpp = CommonClass.Direction.RIGHT;
+                    break;
+                case RIGHT:
+                    mx = true;  // y tengelyen kell lépkedni
+                    stepDir1 = CommonClass.Direction.DOWN;
+                    stepDir2 = CommonClass.Direction.UP;
+                    origDirOpp = CommonClass.Direction.LEFT;
+                    break;
+            }
+            
+            // induljunk el pozitív irányban az mx/my tengelyen (amelyik igaz)
+            // amíg el nem jutunk az aréna széléig
+            for(int sideSteps = 1; sideSteps < (mx ? arena.second.x-x : arena.second.y-y); ++sideSteps) {
+                // a falnál kezdünk
+                x = ox;
+                y = oy;
+                
+                pathList.addAll(pathListToWall);
+                                
+                for(int sideStep=0; sideStep<sideSteps; ++sideStep) {
+                    if (mx) ++x; else ++y;
+                    pathList.add(stepDir1);
+                }
+                int areaWin = (mx ? ROWS-x : COLS-y) * (mx ? arena.second.y-arena.first.y : arena.second.x-arena.first.x);
+                if (arenaSize / 2 < areaWin) {
+                    areaWin = arenaSize-areaWin;
+                }
+                
+                // az eredeti iránnyal ellentétesen elmegyünk a túlsó falig
+                /*
+                while(cells[x][y]==0) {
+                    if (mx) --y; else --x;
+                    pathList.add(origDirOpp);
+                }
+                */
+                for(int n = 0; n < (my ? arena.second.x-arena.first.x : arena.second.y-arena.first.y); ++n) {
+                    pathList.add(origDirOpp);
+                }
+                
+                result.add(new Tuple<>(new ArrayList<>(pathList), areaWin));
+                pathList.clear();
+            }
+            
+            // negatív irány
+            for(int sideSteps = 1; sideSteps < (mx ? x-arena.first.x : y-arena.first.y); ++sideSteps) {
+                // a falnál kezdünk
+                x = ox;
+                y = oy;
+                
+                pathList.addAll(pathListToWall);
+                                
+                for(int sideStep=0; sideStep<sideSteps; ++sideStep) {
+                    if (mx) --x; else --y;
+                    pathList.add(stepDir2);
+                }
+                int areaWin = (mx ? ROWS-x : COLS-y) * (mx ? arena.second.y-arena.first.y : arena.second.x-arena.first.x);
+                if (arenaSize / 2 < areaWin) {
+                    areaWin = arenaSize-areaWin;
+                }
+                
+                // az eredeti iránnyal ellentétesen elmegyünk a túlsó falig
+                /*
+                while(cells[x][y]==0) {
+                    if (mx) --y; else --x;
+                    pathList.add(origDirOpp);
+                }
+                */
+                for(int n = 0; n < (my ? arena.second.x-arena.first.x : arena.second.y-arena.first.y); ++n) {
+                    pathList.add(origDirOpp);
+                }
+                
+                result.add(new Tuple<>(new ArrayList<>(pathList), areaWin));
+                pathList.clear();
+            }
+        }
+        
+        return result;
+    }
 }
