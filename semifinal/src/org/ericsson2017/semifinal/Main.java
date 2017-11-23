@@ -190,7 +190,7 @@ public class Main {
     public void main() throws Throwable 
     {     
         
-        boolean isKeyboard = false;
+        boolean isKeyboard = true;
         SimManager simManager;
         Tuple<List<CommonClass.Direction>, Double> stepListWithProb;
         int health;
@@ -285,6 +285,7 @@ public class Main {
                         break;
                     }
                 }
+                kbDirList.clear();
 
                 // no more level files - use your hand!
                 while(true)
@@ -342,6 +343,7 @@ public class Main {
     }
     
     private void printStatus(ResponseClass.Response.Reader response) {
+        if (response.getInfo().getLevel()<2) return;
         System.out.println("");
         System.out.println("*************");
         System.out.println("STATUS REPORT");
@@ -361,7 +363,7 @@ public class Main {
         System.out.println("Unit owner: " + response.getUnits().get(0).getOwner());
         System.out.println("Unit health: " + response.getUnits().get(0).getHealth());
         System.out.println("Unit position: " + response.getUnits().get(0).getPosition().getX() + ":" + response.getUnits().get(0).getPosition().getY());
-
+        
     }
 	
     private ResponseClass.Response.Reader print(
