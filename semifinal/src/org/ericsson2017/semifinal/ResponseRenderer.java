@@ -152,7 +152,7 @@ public class ResponseRenderer {
 		for (Enemy enemy: response.getEnemies()) {
 			int ex=cellsX+enemy.coord.y*cellSize;
 			int ey=cellsY+enemy.coord.x*cellSize;
-			graphics.setColor(Color.LIGHT_GRAY);
+			graphics.setColor(Color.WHITE);
 			graphics.drawOval(
 					ex+1,
 					ey+1,
