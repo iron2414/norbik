@@ -286,6 +286,55 @@ public class Main {
                     }
                 }
                 kbDirList.clear();
+                
+                /* 
+                
+                // Az összes ellenég mozgását fájlokba írja miközben a unit a pálya szélén zizeg
+                List<List<Coord>> enemiesPosList = new ArrayList<>();
+                for(Enemy enemy : simManager.serverResponseParser.enemies) {
+                    List<Coord> posList = new ArrayList<>();
+                    enemiesPosList.add(posList);
+                }
+                
+                keyboardLevel++;
+                CommonClass.Direction dir;
+                int i;
+                try {
+                    while(true) {
+                        dir = CommonClass.Direction.DOWN;
+                        dir = simManager.checkMove(dir);
+                        move(dir);
+                        response=response();
+
+                        if (response.getUnits().get(0).getHealth() == 0) {
+                            i = 0;
+                            for(List<Coord> posList : enemiesPosList) {
+                                file = Paths.get("xonix_"+keyboardLevel+"_enemy_"+i+".pos");
+                                Files.write(file, posList.toString().getBytes());
+                                i++;
+                            }
+                            break;
+                        }
+
+                        simManager.setResponse(response);
+                        print(response, simManager.serverResponseParser.copy());
+
+                        i = 0;
+                        for(Enemy enemy : simManager.serverResponseParser.enemies) {
+                            List<Coord> posList = enemiesPosList.get(i);
+                            posList.add(enemy.coord);
+                            i++;
+                        }
+                    }
+                } catch (Throwable e) {
+                    i = 0;
+                    for(List<Coord> posList : enemiesPosList) {
+                        file = Paths.get("xonix_"+keyboardLevel+"_enemy_"+i+".pos");
+                        Files.write(file, posList.toString().getBytes());
+                        i++;
+                    }
+                }
+                */    
 
                 // no more level files - use your hand!
                 while(true)
